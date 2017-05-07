@@ -1,0 +1,758 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.2. Part 2: creating and importing image features &mdash; GridFix 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="GridFix 0.2 documentation" href="../index.html"/>
+        <link rel="up" title="3. GridFix Tutorial" href="../tutorial.html"/>
+        <link rel="next" title="3.3. Part 3: GLMM Analysis" href="Tutorial3_GLMMPreprocessing.html"/>
+        <link rel="prev" title="3.1. Part 1: Working with images, regions and fixations" href="Tutorial1_ImagesRegionsFixations.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GridFix
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">3. Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Tutorial1_ImagesRegionsFixations.html">3.1. Part 1: Working with images, regions and fixations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.2. Part 2: creating and importing image features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-Creating-features-from-images">3.2.1. 1. Creating features from images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-Using-pre-generated-feature-maps">3.2.2. 2. Using pre-generated feature maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#3.-A-special-case:-the-Central-Viewing-Bias-&quot;feature&quot;">3.2.3. 3. A special case: the Central Viewing Bias &#8220;feature&#8221;</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#4.-Concluding-Remarks">3.2.4. 4. Concluding Remarks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#References">3.2.5. References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial3_GLMMPreprocessing.html">3.3. Part 3: GLMM Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">4. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">5. Module Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GridFix</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../tutorial.html">3. GridFix Tutorial</a> &raquo;</li>
+        
+      <li>3.2. Part 2: creating and importing image features</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/Tutorial2_ImageFeatures.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-bold { font-weight: bold; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Part-2:-creating-and-importing-image-features">
+<h1>3.2. Part 2: creating and importing image features<a class="headerlink" href="#Part-2:-creating-and-importing-image-features" title="Permalink to this headline">¶</a></h1>
+<p>Within GridFix, a &#8220;feature&#8221; defines a two-step transformation on an
+image and an associated RegionSet. In the first step, each input image
+may be transformed in a way that is useful for the respective analysis,
+such as generating a contrast map or edge density image. The resulting
+feature map (which is stored and processed as a numpy array) is then
+summarized using the RegionSet so that one feature value per region is
+returned.</p>
+<p>As an example, the most simple feature object is <em>LuminanceFeature</em>,
+which transforms an RGB image into a greyscale luminance image (using
+the same process as Matlab&#8217;s <em>rgb2gray.m</em>) and then returns the mean
+luminance value for each region of interest / grid cell.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Import GridFix toolbox and related modules</span>
+
+<span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">gridfix</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<p><strong>Loading data:</strong> In oder to be able to create and import various image
+features, we will first load the same example images used in part 1 and
+again define a 8-by-6 grid for evaluation. If we leave out all the
+plotting and example code, that&#8217;s just two lines of Python code:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">images</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;images/tutorial_images.csv&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;tutorial&#39;</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">GridRegionSet</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">images</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;testgrid&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="1.-Creating-features-from-images">
+<h2>3.2.1. 1. Creating features from images<a class="headerlink" href="#1.-Creating-features-from-images" title="Permalink to this headline">¶</a></h2>
+<p>GridFix has some built-in image features than can be used directly on
+input images. To illustrate, let&#8217;s create the aforementioned
+LuminanceFeature for our input images and the previously defined grid.
+<code class="docutils literal"><span class="pre">print()</span></code>ing a Feature object will show details on the Feature
+itself as well as the associated datasets.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fLum</span> <span class="o">=</span> <span class="n">LuminanceFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fLum</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;gridfix.LuminanceFeature, length=48&gt;
+Regions:
+        &lt;gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB&gt;
+Images:
+        &lt;gridfix.ImageSet &#34;tutorial&#34;, 15 images, size=(800, 600)&gt;
+</pre></div></div>
+</div>
+<p>A feature&#8217;s main result is a vector of feature values whose length
+depends on the associated RegionSet (i.e., one value per region). In our
+example, the newly defined feature <code class="docutils literal"><span class="pre">fLum</span></code> has a length of 48, one mean
+luminance value for each grid cell. To see the feature values for a
+feature object, <code class="docutils literal"><span class="pre">apply()</span></code> it to one of the <em>imageids</em> in the set (as
+in the previous tutorial, feel free to change the <em>imageid</em> and observe
+the result):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">example_img</span> <span class="o">=</span> <span class="s1">&#39;111&#39;</span>
+<span class="n">fLum</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>Out[12]:
+</pre></div>
+</div>
+<div class="output_area highlight-none"><div class="highlight"><pre>
+<span></span>array([ 0.93599965,  0.89392132,  0.79004721,  0.74111512,  0.68258492,
+        0.71182295,  0.71191775,  0.7004852 ,  0.96326098,  0.86776976,
+        0.80081014,  0.72126652,  0.64451908,  0.39865884,  0.36996616,
+        0.6401726 ,  0.96006093,  0.87535547,  0.76301469,  0.63979265,
+        0.58886162,  0.37999733,  0.52692699,  0.53575212,  0.84881097,
+        0.75357533,  0.64711389,  0.57149906,  0.45624284,  0.28651496,
+        0.48697679,  0.52280946,  0.88639214,  0.83512268,  0.65783505,
+        0.49580753,  0.54547947,  0.2634846 ,  0.44386838,  0.40858254,
+        0.62477865,  0.39145541,  0.37857847,  0.7307231 ,  0.52127252,
+        0.27579   ,  0.52870886,  0.38594558])
+</pre></div>
+</div>
+</div>
+<p>The vector of length 48 displayed above will later be incorporated into
+the GLMM predictor matrix. However, the pure values are not very
+intuitive when exploring data. Therefore, all Feature() objects support
+plotting, which will apply the feature to the specified <em>imageid</em> and
+then (by default) display both the resulting feature map and the
+accompanying RegionSet, with each region shaded according to it&#8217;s
+feature value (normalized to the full display range of 0..255 by
+default).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fLum</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial2_ImageFeatures_9_0.png" src="../_images/tutorial_Tutorial2_ImageFeatures_9_0.png" />
+</div>
+</div>
+<p>Now that we know how to define a feature based on an ImageSet, let&#8217;s add
+another feature, this time investigating the edge density map returned
+by the Sobel edge detector. Feature values here are defined as the
+proportion of edges in each region / grid cell (because the edge map is
+binarized, this is equivalent to the mean of each region):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fEdge</span> <span class="o">=</span> <span class="n">SobelEdgeFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span>
+<span class="n">fEdge</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial2_ImageFeatures_11_0.png" src="../_images/tutorial_Tutorial2_ImageFeatures_11_0.png" />
+</div>
+</div>
+</div>
+<div class="section" id="2.-Using-pre-generated-feature-maps">
+<h2>3.2.2. 2. Using pre-generated feature maps<a class="headerlink" href="#2.-Using-pre-generated-feature-maps" title="Permalink to this headline">¶</a></h2>
+<p>GridFix can, of course, also load predefined feature maps directly from
+image- or MATLAB files, such as the output maps generated by a saliency
+model or image segmentation algorithm. In this example, we will use
+saliency maps created by the well-known saliency model by Itti, Koch &amp;
+Niebur (1998) [2].</p>
+<p>For external feature maps, typically each map corresponds to a single
+image from the fixation dataset. Therefore, an intuitive way to
+represent a collection of feature maps is as another ImageSet object
+(internally, ImageSets are a collection of high-precision floating point
+matrices). The following example shows a way to load files for an
+ImageSet that is different from the example in part 1: here, we load a
+folder containing .mat files and explicitly specify the <em>imageids</em> to
+assign to each image in the folder. The attribute <code class="docutils literal"><span class="pre">mat_var='IKN98'</span></code>
+tells the software to load the <em>IKN98</em> matrix from the specified MATLAB
+file, allowing to store multiple input maps in the same file:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;112&#39;</span><span class="p">,</span> <span class="s1">&#39;67&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;52&#39;</span><span class="p">,</span> <span class="s1">&#39;37&#39;</span><span class="p">,</span> <span class="s1">&#39;106&#39;</span><span class="p">,</span> <span class="s1">&#39;129&#39;</span><span class="p">,</span> <span class="s1">&#39;9&#39;</span><span class="p">,</span> <span class="s1">&#39;107&#39;</span><span class="p">,</span> <span class="s1">&#39;97&#39;</span><span class="p">,</span> <span class="s1">&#39;58&#39;</span><span class="p">,</span> <span class="s1">&#39;111&#39;</span><span class="p">,</span> <span class="s1">&#39;85&#39;</span><span class="p">,</span> <span class="s1">&#39;149&#39;</span><span class="p">,</span> <span class="s1">&#39;150&#39;</span><span class="p">]</span>
+<span class="n">maps</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;maps&#39;</span><span class="p">,</span> <span class="n">imageids</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">mat_var</span><span class="o">=</span><span class="s1">&#39;IKN98&#39;</span><span class="p">)</span>
+<span class="n">maps</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial2_ImageFeatures_14_0.png" src="../_images/tutorial_Tutorial2_ImageFeatures_14_0.png" />
+</div>
+</div>
+<p>Now that the IKN98 feature maps have been loaded, we can create a
+feature to assign each region (grid cell) a unique value based on the
+input feature map. The corresponding Feature object is called
+<strong>MapFeature</strong>. This feature object does not transform the input map in
+any way and simply applies a statistical function to each region. The
+function to use can be specified in the <code class="docutils literal"><span class="pre">stat=</span></code> parameter (default is
+<code class="docutils literal"><span class="pre">stat=np.mean</span></code> to return the mean feature value per region). All numpy
+statistics functions work, such as <code class="docutils literal"><span class="pre">mean</span></code>, <code class="docutils literal"><span class="pre">std</span></code>, <code class="docutils literal"><span class="pre">median</span></code> and so
+on, but this feature will also accept any other function that can
+process an array and return a scalar. In our example, the following code
+creates a MapFeature which returns the mean saliency map value in each
+grid cell:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fIKN</span> <span class="o">=</span> <span class="n">MapFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">maps</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+<span class="n">fIKN</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial2_ImageFeatures_16_0.png" src="../_images/tutorial_Tutorial2_ImageFeatures_16_0.png" />
+</div>
+</div>
+</div>
+<div class="section" id="3.-A-special-case:-the-Central-Viewing-Bias-&quot;feature&quot;">
+<h2>3.2.3. 3. A special case: the Central Viewing Bias &#8220;feature&#8221;<a class="headerlink" href="#3.-A-special-case:-the-Central-Viewing-Bias-"feature"" title="Permalink to this headline">¶</a></h2>
+<p>When viewing a naturalistic scene on a computer screen, human observers
+exhibit a strong bias towards the center of the image, even when the
+center of the image does not even contain the most salient image
+features or the most information [3]. Even though the assumption of
+higher fixation probabilities for more central regions is not
+technically a feature of the input image, central viewing bias can be
+modeled in GridFix as a special <code class="docutils literal"><span class="pre">Feature()</span></code> object, the
+<strong>CentralBiasFeature</strong>. This object type returns the distance between
+image center and each region&#8217;s center of gravity (CoG) as its feature
+values, using one of the following models of central viewing bias:</p>
+<ul class="simple">
+<li>Euclidean distance in pixels</li>
+<li>Gaussian distance measure as proposed in [4], with adjustable
+<span class="math">\(\sigma^2\)</span> and <span class="math">\(\nu\)</span> parameters</li>
+<li>Manhattan- / Taxicab metric (see
+<a class="reference external" href="https://en.wikipedia.org/wiki/Taxicab_geometry">https://en.wikipedia.org/wiki/Taxicab_geometry</a>)</li>
+</ul>
+<p>A CentralBiasFeature can be defined and plotted like any other feature
+(note that only some variants create an actual feature map, which is not
+needed for e.g. euclidean distance). For this example, we will use the
+&#8220;gaussian&#8221; distance measure, keeping the default parameters suggested by
+Clarke and Tatler in [3]. As always, you can try other values and
+observe how they change the feature map.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fCent</span> <span class="o">=</span> <span class="n">CentralBiasFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">,</span> <span class="n">sig2</span><span class="o">=</span><span class="mf">0.23</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.45</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fCent</span><span class="p">)</span>
+<span class="n">fCent</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;gridfix.CentralBiasFeature, length=48, measure &#34;gaussian&#34;, sig2=0.23, nu=0.45&gt;
+Regions:
+        &lt;gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB&gt;
+Images:
+        &lt;gridfix.ImageSet &#34;tutorial&#34;, 15 images, size=(800, 600), normalized&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial2_ImageFeatures_18_1.png" src="../_images/tutorial_Tutorial2_ImageFeatures_18_1.png" />
+</div>
+</div>
+</div>
+<div class="section" id="4.-Concluding-Remarks">
+<h2>3.2.4. 4. Concluding Remarks<a class="headerlink" href="#4.-Concluding-Remarks" title="Permalink to this headline">¶</a></h2>
+<p>This concludes the second part of our GridFix tutorial. Since we now
+know how to create and import the image features we want to compare to
+our participants&#8217; fixation data, the next step in this tutorial will
+explain how to combine all these puzzle pieces into a GLMM predictor
+matrix and run the resulting model in R.</p>
+</div>
+<div class="section" id="References">
+<h2>3.2.5. References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
+<p>[1] Nuthmann, A., &amp; Einhäuser, W. (2015). A new approach to modeling the
+influence of image features on fixation selection in scenes. Annals of
+the New York Academy of Sciences, 1339(1), 82-96.
+<a class="reference external" href="http://dx.doi.org/10.1111/nyas.12705">http://dx.doi.org/10.1111/nyas.12705</a></p>
+<p>[2] Itti, L., Koch, C. &amp; Niebur, E. (1998). A model of saliency-based
+visual attention for rapid scene analysis. IEEE Transactions on Pattern
+Analysis &amp; Machine Intelligence (11), 1254-1259.
+<a class="reference external" href="http://dx.doi.org/10.1109/34.730558">http://dx.doi.org/10.1109/34.730558</a></p>
+<p>[3] Tatler, B. W. (2007). The central fixation bias in scene viewing:
+selecting an optimal viewing position independently of motor biases and
+image feature distributions. J Vis 7(14), 411-417.
+<a class="reference external" href="http://dx.doi.org/10.1167/7.14.4">http://dx.doi.org/10.1167/7.14.4</a></p>
+<p>[4] Clarke, A. D. F. &amp; Tatler, B. W. (2014). Deriving an appropriate
+baseline for describing fixation behaviour. Vision Res 102, 41-51.
+<a class="reference external" href="http://dx.doi.org/10.1016/j.visres.2014.06.016">http://dx.doi.org/10.1016/j.visres.2014.06.016</a></p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Tutorial3_GLMMPreprocessing.html" class="btn btn-neutral float-right" title="3.3. Part 3: GLMM Analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Tutorial1_ImagesRegionsFixations.html" class="btn btn-neutral" title="3.1. Part 1: Working with images, regions and fixations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Immo Schuetz.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

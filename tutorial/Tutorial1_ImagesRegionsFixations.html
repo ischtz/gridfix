@@ -1,0 +1,1097 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.1. Part 1: Working with images, regions and fixations &mdash; GridFix 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="GridFix 0.2 documentation" href="../index.html"/>
+        <link rel="up" title="3. GridFix Tutorial" href="../tutorial.html"/>
+        <link rel="next" title="3.2. Part 2: creating and importing image features" href="Tutorial2_ImageFeatures.html"/>
+        <link rel="prev" title="3. GridFix Tutorial" href="../tutorial.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GridFix
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">3. Tutorial</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.1. Part 1: Working with images, regions and fixations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Loading-images-and-feature-maps:-the-ImageSet-object">3.1.1. Loading images and feature maps: the ImageSet object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Defining-image-parcellations-(e.g.,-regular-grid)-using-a-RegionSet">3.1.2. Defining image parcellations (e.g., regular grid) using a RegionSet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Loading-and-viewing-image-fixations">3.1.3. Loading and viewing image fixations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Using-a-RegionSet-to-evaluate-fixated-locations">3.1.4. Using a RegionSet to evaluate fixated locations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Concluding-Remarks">3.1.5. Concluding Remarks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#References">3.1.6. References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial2_ImageFeatures.html">3.2. Part 2: creating and importing image features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial3_GLMMPreprocessing.html">3.3. Part 3: GLMM Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">4. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">5. Module Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GridFix</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../tutorial.html">3. GridFix Tutorial</a> &raquo;</li>
+        
+      <li>3.1. Part 1: Working with images, regions and fixations</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/Tutorial1_ImagesRegionsFixations.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-bold { font-weight: bold; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Part-1:-Working-with-images,-regions-and-fixations">
+<h1>3.1. Part 1: Working with images, regions and fixations<a class="headerlink" href="#Part-1:-Working-with-images,-regions-and-fixations" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the first part of our GridFix tutorial. In this part, we will
+get to know the different objects provided by GridFix to facilitate
+interactive use of the toolbox in fixation analysis by loading some
+images, creating a grid parcellation and viewing image fixations.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Import GridFix toolbox and related modules</span>
+
+<span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">gridfix</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Loading-images-and-feature-maps:-the-ImageSet-object">
+<h2>3.1.1. Loading images and feature maps: the ImageSet object<a class="headerlink" href="#Loading-images-and-feature-maps:-the-ImageSet-object" title="Permalink to this headline">¶</a></h2>
+<p>An <em>ImageSet</em> holds a collection of images or feature maps, each
+addressed by an individual <em>imageid</em> which is used throughout the
+toolbox to identify images. As a first step, we are going to load some
+example images using a CSV file containing image filenames and IDs, then
+print some information about the resulting ImageSet. It is also possible
+to load images from a folder and specify <em>imageids</em> explicitly - we are
+going to do that at a later stage.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">images</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;images/tutorial_images.csv&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;tutorial&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+
+<span class="c1"># Number of images available using len() and image size as (width, height)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+<span class="c1"># The imageids attribute contains a list of all defined imageids in the set</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">imageids</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;gridfix.ImageSet &#34;tutorial&#34;, 15 images, size=(800, 600)&gt;
+15
+(800, 600)
+[&#39;6&#39;, &#39;9&#39;, &#39;37&#39;, &#39;52&#39;, &#39;58&#39;, &#39;67&#39;, &#39;85&#39;, &#39;97&#39;, &#39;106&#39;, &#39;107&#39;, &#39;111&#39;, &#39;112&#39;, &#39;129&#39;, &#39;149&#39;, &#39;150&#39;]
+</pre></div></div>
+</div>
+<p>Images or feature maps are stored as numpy arrays. To see a table
+(actually, a pandas DataFrame) of all images in the set and their
+corresponding IDs, you can query the <em>info</em> attribute.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">images</span><span class="o">.</span><span class="n">info</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>imageid</th>
+      <th>filename</th>
+      <th>width</th>
+      <th>height</th>
+      <th>channels</th>
+      <th>type</th>
+      <th>mat_var</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>6</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>9</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>37</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>52</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>58</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>67</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>85</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>97</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>106</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>107</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>111</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>112</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>129</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>149</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>150</td>
+      <td>/home/mo/Seafile/PythonProjects/gridfix-dev/tu...</td>
+      <td>800</td>
+      <td>600</td>
+      <td>3</td>
+      <td>PNG</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><strong>Image data</strong> (i.e., the raw floating-point matrices) can be retrieved
+by passing the corresponding <em>imageid</em> to the ImageSet.images method or
+simply indexing using [&#8216;imageid&#8217;]. Most gridfix objects also support a
+<code class="docutils literal"><span class="pre">plot()</span></code> method to render images and feature maps/values as a
+matplotlib figure.</p>
+<p>Note: in an interactive IPython/Jupyter session, plotted figures will be
+displayed immediately and no figure object will be returned. Use
+<code class="docutils literal"><span class="pre">plt.savefig()</span></code> to save the most recent figure. When using the gridfix
+module in a script, <code class="docutils literal"><span class="pre">plot()</span></code> will return a figure object for further
+processing.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Raw image data array (uncomment to display)</span>
+<span class="c1">#print(images[&#39;149&#39;])</span>
+
+<span class="c1"># Show an image interactively</span>
+<span class="n">example_img</span> <span class="o">=</span> <span class="s1">&#39;149&#39;</span>
+<span class="n">images</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">)</span>
+
+<span class="c1"># To save the previous figure output to file, use:</span>
+<span class="c1">#plt.savefig(&#39;image10.pdf&#39;)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_7_0.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_7_0.png" />
+</div>
+</div>
+</div>
+<div class="section" id="Defining-image-parcellations-(e.g.,-regular-grid)-using-a-RegionSet">
+<h2>3.1.2. Defining image parcellations (e.g., regular grid) using a RegionSet<a class="headerlink" href="#Defining-image-parcellations-(e.g.,-regular-grid)-using-a-RegionSet" title="Permalink to this headline">¶</a></h2>
+<p>GridFix segments images using a <em>RegionSet</em>, which simply holds a
+collection of binary masks that have the same dimensions as the image(s)
+they will be applied to. Each mask therefore selects a region from the
+image. Regions do not have to be contiguous or non-overlapping, and the
+sum of all regions (available in the <code class="docutils literal"><span class="pre">RegionSet.mask</span></code> attribute) is
+not required to cover the whole image area.</p>
+<p>In this example, we will use the same regular grid parcellation used in
+[1]. To define a rectangular grid parcellation such as the 8-by-6 grid
+used in the above article, we create a GridRegionSet - a special type of
+RegionSet object which will automatically create the individual masks
+for each grid cell. Creating a GridRegionSet takes at least two
+arguments: the size of the corresponding image(s), which we can get from
+our previously created ImageSet, and the grid dimensions as a (width,
+height) tuple.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">grid</span> <span class="o">=</span> <span class="n">GridRegionSet</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">images</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;testgrid&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB&gt;
+</pre></div></div>
+</div>
+<p>To quickly visualize a RegionSet (especially when dealing with more
+complicated parcellations than a simple rectangular grid), each
+RegionSet object supports the <code class="docutils literal"><span class="pre">plot()</span></code> method that will create a
+visual representation in the size of the input images.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_11_0.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_11_0.png" />
+</div>
+</div>
+<p>Even when no fixation data is loaded, a RegionSet can be used to segment
+an image into subregions, for example to perform image statistics on
+each region or visualize which parts of an image are selected by a
+collection of regions of interest. The <code class="docutils literal"><span class="pre">apply()</span></code> methods returns a
+list of image arrays, each containing the image patch(es) corresponding
+to each mask. If you add <code class="docutils literal"><span class="pre">crop=True</span></code> to the <code class="docutils literal"><span class="pre">apply()</span></code> call, the
+resulting output is cropped to the minimal bounding box of each image
+patch.</p>
+<p>Note: For a GridRegionSet, mask numbering starts at the upper left
+corner and progresses row-wise.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Applying the grid to our previously used example image</span>
+<span class="n">ex_img</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">example_img</span><span class="p">]</span> <span class="c1"># this yields the image data array</span>
+<span class="n">slices</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">ex_img</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># slices now contains the selected image data</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+48
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Display some of the image patches using matplotlib</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">f1</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">slices</span><span class="p">[</span><span class="mi">17</span><span class="p">],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+<span class="n">f2</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">slices</span><span class="p">[</span><span class="mi">23</span><span class="p">],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>Out[8]:
+</pre></div>
+</div>
+<div class="output_area highlight-none"><div class="highlight"><pre>
+<span></span>&lt;matplotlib.image.AxesImage at 0x7f75c86f8dd8&gt;
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_14_1.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_14_1.png" />
+</div>
+</div>
+<p><strong>Note</strong>: any RegionSet object allows to export the generated image
+patches as files, either using .export_patches() for a single image
+array or using .export_patches_from_set() to export all image regions
+from a complete image set.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># This will export all 48 patches selected from the example image when uncommented</span>
+<span class="c1">#grid.export_patches(images)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Loading-and-viewing-image-fixations">
+<h2>3.1.3. Loading and viewing image fixations<a class="headerlink" href="#Loading-and-viewing-image-fixations" title="Permalink to this headline">¶</a></h2>
+<p>GridFix stores fixation data in a <em>Fixations()</em> object and expects data
+in table form, e.g. imported from a CSV text file. Fixation data should
+be in long format (one fixation per row), and the file must at least
+include the following columns:</p>
+<ul class="simple">
+<li><em>imageid</em>: unique ID for each image (string)</li>
+<li><em>fixid</em>: unique ID for each fixation per trial, e.g. sequential
+fixation number</li>
+<li><em>x</em>, <em>y</em>: horizontal and vertical fixation position in pixels</li>
+</ul>
+<p>Column names do not have to be as defined above - if your columns are
+named differently, the corresponding column names can be submitted when
+creating the Fixations object (see example below).</p>
+<p>For the tutorial, we will a small fixation data set containing fixations
+by 8 subjects on our example images:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fix</span> <span class="o">=</span> <span class="n">Fixations</span><span class="p">(</span><span class="s1">&#39;tutorial_fixations.csv&#39;</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="s1">&#39;image_id&#39;</span><span class="p">,</span> <span class="n">fixid</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_INDEX&#39;</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_X&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_Y&#39;</span><span class="p">,</span> <span class="n">imageset</span><span class="o">=</span><span class="n">images</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fix</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;gridfix.Fixations data set, 2556 samples, 15 images&gt;
+Images:
+        &lt;gridfix.ImageSet &#34;tutorial&#34;, 15 images, size=(800, 600), normalized&gt;
+</pre></div></div>
+</div>
+<p>Note: if the parameter <code class="docutils literal"><span class="pre">imageset=</span></code> is added on creation of a Fixations
+dataset, the toolbox will check that all <em>imageids</em> found in the
+fixation data have a corresponding image in the ImageSet.</p>
+<p>Now that we have successfully read the data, let&#8217;s look at the fixations
+our subjects made on the example image selected above (using white
+circles as the fixation markers) - note that this call takes the
+<em>imageid</em> as argument, not an image array, so that appropriate fixations
+can be selected from the dataset:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">fix</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">,</span> <span class="n">plotformat</span><span class="o">=</span><span class="s1">&#39;wo&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_20_0.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_20_0.png" />
+</div>
+</div>
+<p>This displays all fixations on this image, regardless of which subject
+was viewing the image at the time. Let&#8217;s find out which subject IDs are
+in out dataset and plot only fixations by one of them. The original
+dataset is available under the <code class="docutils literal"><span class="pre">.data</span></code> attribute as a DataFrame and
+supports all DataFrame operations.</p>
+<p>Moreover, Fixations objects support a <code class="docutils literal"><span class="pre">select()</span></code> operation which takes
+a dictionary as argument, with each dictionary key specifying one column
+from the original data file and each value specifying a list of values
+to select from this column.</p>
+<p><strong>Note: ``select_fix()`` does not automatically add the corresponding
+image id variable to its filter variables, so be sure to include it -
+otherwise fixations for multiple images are returned!</strong> If you are only
+interested in the plot, you can also add
+<code class="docutils literal"><span class="pre">select={'some_column':</span> <span class="pre">['some',</span> <span class="pre">'values']}</span></code> to the arguments of
+<code class="docutils literal"><span class="pre">plot()</span></code> without explicitly selecting fixations into a new dataset -
+this will return only fixations matching the selected image.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Find all unique subject IDs in the dataset</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fix</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subject_number&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+<span class="c1"># ...and create a subset of the fixation data for subject #203</span>
+<span class="n">subj_fix</span> <span class="o">=</span> <span class="n">fix</span><span class="o">.</span><span class="n">select_fix</span><span class="p">(</span><span class="n">select</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;subject_number&#39;</span><span class="p">:</span> <span class="mi">203</span><span class="p">,</span> <span class="s1">&#39;image_id&#39;</span><span class="p">:</span> <span class="n">example_img</span><span class="p">})</span>
+
+<span class="c1"># Now plot only the fixations of subject #203</span>
+<span class="n">subj_fix</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">example_img</span><span class="p">,</span> <span class="n">plotformat</span><span class="o">=</span><span class="s1">&#39;wo&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[201 203 204 205 206 207 208 209]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_22_1.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_22_1.png" />
+</div>
+</div>
+<p><strong>Note</strong>: if necessary, a Fixations object can also return an array of
+fixated/non-fixated pixels, either binary using e.g.
+subj_fix.location_map(), or containing the count of fixations for each
+pixel using .count_map().</p>
+</div>
+<div class="section" id="Using-a-RegionSet-to-evaluate-fixated-locations">
+<h2>3.1.4. Using a RegionSet to evaluate fixated locations<a class="headerlink" href="#Using-a-RegionSet-to-evaluate-fixated-locations" title="Permalink to this headline">¶</a></h2>
+<p>After fixation data has been loaded and selected in this way, the
+resulting fixations can now be evaluated on a previously created
+RegionSet parcellation, returning the fixated and non-fixated regions
+(for the example grid: fixated and non-fixated grid cells):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Determine fixated and non-fixated grid cells</span>
+<span class="n">fix_on_image</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">fixated</span><span class="p">(</span><span class="n">subj_fix</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fix_on_image</span><span class="p">)</span>
+
+<span class="c1"># Number of returned values - this should match number of grid cells</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fix_on_image</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  1.  1.  0.  0.  0.  0.  0.
+  1.  1.  1.  0.  0.  0.  0.  0.  0.  1.  0.  0.  0.  0.  0.  0.  0.  1.
+  1.  0.  0.  0.  0.  0.  1.  0.  0.  1.  0.  0.]
+48
+</pre></div></div>
+</div>
+<p>The result of this operation yields a binary value for each region in
+our previously created GridRegionSet: the respective cell has been
+fixated (1) or not (0). To visualize this result on the grid, we can
+simply plot the GridRegionSet as we did above, but this time pass the
+resulting fixations to the plotting function using the <em>values=</em>
+argument:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">fix_on_image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_27_0.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_27_0.png" />
+</div>
+</div>
+<p>When GridFix is used to create a predictor file for GLMM analysis, it is
+this vector of fixated and non-fixated regions that will be calculated
+alongside the other predictors and used as the <strong>dependent variable</strong> in
+the GLMM.</p>
+<p>In case that not the fixated/non-fixated status of a cell but rather the
+absolute number of fixations is of interest, this information can simply
+be calculated and plotted by adding <code class="docutils literal"><span class="pre">count=True</span></code> when calculating the
+fixated regions:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Calculate number of fixations per cell...</span>
+<span class="n">count_fix</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">fixated</span><span class="p">(</span><span class="n">subj_fix</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># ...and visualize, specifying a colormap for easier visualization</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">count_fix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;hot&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">count_fix</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  4.  2.  0.  0.  0.  0.  0.
+  2.  1.  3.  0.  0.  0.  0.  0.  0.  1.  0.  0.  0.  0.  0.  0.  0.  3.
+  2.  0.  0.  0.  0.  0.  1.  0.  0.  1.  0.  0.]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_Tutorial1_ImagesRegionsFixations_29_1.png" src="../_images/tutorial_Tutorial1_ImagesRegionsFixations_29_1.png" />
+</div>
+</div>
+</div>
+<div class="section" id="Concluding-Remarks">
+<h2>3.1.5. Concluding Remarks<a class="headerlink" href="#Concluding-Remarks" title="Permalink to this headline">¶</a></h2>
+<p>This concludes the first part of our GridFix tutorial. Since Jupyter
+notebooks are interactive when opened on your local machine, feel free
+to play around with the code in the above tutorial, for example by
+selecting a different image from the ImageSet or using a grid of
+different dimensions, then selecting &#8220;Cell &gt; Run All&#8221; to recreate all
+results using new data.</p>
+</div>
+<div class="section" id="References">
+<h2>3.1.6. References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
+<p>[1] Nuthmann, A., &amp; Einhäuser, W. (2015). A new approach to modeling the
+influence of image features on fixation selection in scenes. Annals of
+the New York Academy of Sciences, 1339(1), 82-96.
+<a class="reference external" href="http://dx.doi.org/10.1111/nyas.12705">http://dx.doi.org/10.1111/nyas.12705</a></p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Tutorial2_ImageFeatures.html" class="btn btn-neutral float-right" title="3.2. Part 2: creating and importing image features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../tutorial.html" class="btn btn-neutral" title="3. GridFix Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Immo Schuetz.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

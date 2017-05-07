@@ -1,0 +1,1077 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>gridfix.regionset &mdash; GridFix 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="GridFix 0.2 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> GridFix
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">2. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">3. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">4. Module Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">GridFix</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>gridfix.regionset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for gridfix.regionset</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Rectangle</span>
+
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+
+<span class="kn">from</span> <span class="nn">fractions</span> <span class="k">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">read_table</span>
+
+<span class="kn">from</span> <span class="nn">.model</span> <span class="k">import</span> <span class="n">ImageSet</span>
+
+
+<div class="viewcode-block" id="RegionSet"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet">[docs]</a><span class="k">class</span> <span class="nc">RegionSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class for sets of image regions of interest.</span>
+
+<span class="sd">    RegionSets can be used to spatially group fixations, create Feature objects</span>
+<span class="sd">    for a FixationModel and split an image into parts. Classes inheriting from </span>
+<span class="sd">    RegionSet may specify functions to create regions.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        info (DataFrame): table of region metadata (labels, bboxes, number of pixels...)</span>
+<span class="sd">        imageids (list): list of all imageids associated with this RegionSet</span>
+<span class="sd">        is_global (bool): True if regions are global (non-image-specific)</span>
+<span class="sd">        label (str): optional label to distinguish between RegionSets.</span>
+<span class="sd">        memory_usage (float): memory usage of all binary masks (kiB)</span>
+<span class="sd">        size (tuple): image dimensions, specified as (width, height).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="n">region_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a new RegionSet from existing region masks.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (tuple): image dimensions, specified as (width, height)</span>
+<span class="sd">            regions: 3d ndarray (bool) with global set of masks </span>
+<span class="sd">                OR dict of multiple such ndarrays, with imageids as keys</span>
+<span class="sd">            region_labels: list of region labels IF _regions_ is a single array</span>
+<span class="sd">                OR dict of such lists, with imageids as keys</span>
+<span class="sd">            label (str): optional descriptive label for this RegionSet</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError if incorrectly formatted regions/region_labels provided</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span>  <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_msize</span> <span class="o">=</span> <span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>   <span class="c1"># matrix convention</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Dict with image-specific region ndarrays</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="n">regions</span>
+            <span class="k">if</span> <span class="n">region_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region_labels</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">region_labels</span><span class="p">):</span>
+                <span class="c1"># Check imageids for consistency</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">region_labels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Labels not consistent: </span><span class="si">{:s}</span><span class="s1"> not in region_labels&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">region_labels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Labels not consistent: </span><span class="si">{:s}</span><span class="s1"> not in regions&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">region_labels</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">imid</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">imid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">regions</span><span class="p">[</span><span class="n">imid</span><span class="p">]))]</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="c1"># Single array of regions - assume global region set (&#39;*&#39;)</span>
+            <span class="k">if</span> <span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">regions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">region_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">region_labels</span><span class="p">)</span> <span class="o">==</span> <span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region_labels</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First argument for RegionSet creation must be ndarray &#39;</span> <span class="o">+</span> 
+                             <span class="s1">&#39;(global regions) or dict of ndarrays (image-specific regions)!&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region_metadata</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; String representation &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="s1">&#39;gridfix.RegionSet(label=</span><span class="si">{:s}</span><span class="s1">, size=(</span><span class="si">{:d}</span><span class="s1">, </span><span class="si">{:d}</span><span class="s1">),</span><span class="se">\n</span><span class="s1">regions=</span><span class="si">{:s}</span><span class="s1">,</span><span class="se">\n</span><span class="s1">region_labels=</span><span class="si">{:s}</span><span class="s1">)&#39;</span>
+        <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Short string representation for printing &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="s1">&#39;&lt;</span><span class="si">{:s}{:s}</span><span class="s1">, size=</span><span class="si">{:s}</span><span class="s1">, </span><span class="si">{:d}</span><span class="s1"> region</span><span class="si">{:s}{:s}</span><span class="s1">, memory=</span><span class="si">{:.1f}</span><span class="s1"> kB&gt;&#39;</span>
+        
+        <span class="n">myclass</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lab</span> <span class="o">=</span> <span class="s1">&#39; (</span><span class="si">{:s}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lab</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">num_s</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">num_r</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_r</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">num_s</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
+
+        <span class="n">imid_s</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="n">imid_s</span> <span class="o">=</span> <span class="s1">&#39; in </span><span class="si">{:d}</span><span class="s1"> images&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">myclass</span><span class="p">,</span> <span class="n">lab</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">num_r</span><span class="p">,</span> <span class="n">num_s</span><span class="p">,</span> <span class="n">imid_s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Overload len(RegionSet) to report total number of regions. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>                
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_r</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">imid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">:</span>
+                <span class="n">num_r</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">imid</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">num_r</span>
+
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Bracket indexing returns all region masks for a specified imageid.</span>
+<span class="sd">            If global regions are set (&#39;*&#39;), always return global region set. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_region_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return DataFrame of region metadata &quot;&quot;&quot;</span>
+        <span class="n">info_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;imageid&#39;</span><span class="p">,</span> <span class="s1">&#39;region&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;imgfrac&#39;</span><span class="p">]</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="n">imageids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imageids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageids</span>
+
+        <span class="k">for</span> <span class="n">imid</span> <span class="ow">in</span> <span class="n">imageids</span><span class="p">:</span>
+            <span class="n">reg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imid</span><span class="p">)</span>
+            <span class="n">lab</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_labels</span><span class="p">(</span><span class="n">imid</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lab</span><span class="p">):</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">reg</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">left</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="p">(</span><span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+
+                <span class="n">area</span> <span class="o">=</span> <span class="n">reg</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">reg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">imgfrac</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">area</span> <span class="o">/</span> <span class="p">(</span><span class="n">reg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">reg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="n">rmeta</span> <span class="o">=</span> <span class="p">[</span><span class="n">imid</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="o">-</span><span class="n">left</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">-</span><span class="n">top</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">imgfrac</span><span class="p">]</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmeta</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">info_cols</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_select_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Select region by imageid with consistency check &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">imageid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">imageid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">imageid</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;RegionSet contains image-specific regions, but no valid imageid was specified!&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_select_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Select region labels corresponding to _select_region &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">imageid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">imageid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">imageid</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;RegionSet contains image-specific regions, but no valid imageid was specified!&#39;</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_global</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return True if a global map is defined (key &#39;*&#39;) &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">imageids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return list of imageids for which region maps exist &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        
+        <span class="n">imids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">imid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">imids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">imids</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">memory_usage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Calculate size in memory of all regions combined &quot;&quot;&quot;</span>
+        <span class="n">msize</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">msize</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span><span class="o">.</span><span class="n">nbytes</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1024.0</span>
+        <span class="k">return</span> <span class="n">msize</span>
+
+
+<div class="viewcode-block" id="RegionSet.count_map"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.count_map">[docs]</a>    <span class="k">def</span> <span class="nf">count_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the number of regions referencing each pixel.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageid (str):  if set, return map for specified image only </span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            2d ndarray of image size, counting number of regions for each pixel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">][:,</span> <span class="o">...</span><span class="p">]:</span>
+                <span class="n">cm</span> <span class="o">+=</span> <span class="n">re</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cm</span>
+
+        <span class="k">elif</span> <span class="n">imageid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">imid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">imid</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="p">[</span><span class="n">imid</span><span class="p">][:,</span> <span class="o">...</span><span class="p">]:</span>
+                    <span class="n">cm</span> <span class="o">+=</span> <span class="n">re</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[:,</span> <span class="o">...</span><span class="p">]:</span>
+                <span class="n">cm</span> <span class="o">+=</span> <span class="n">re</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cm</span></div>
+
+    
+<div class="viewcode-block" id="RegionSet.mask"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.mask">[docs]</a>    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return union mask of all regions or regions for specified image.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageid (str):  if set, return mask for specified image only</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            2d ndarray of image size (bool), True where at least one region</span>
+<span class="sd">            references the corresponding pixel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_map</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.region_map"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.region_map">[docs]</a>    <span class="k">def</span> <span class="nf">region_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return map of region numbers, global or image-specifid.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageid (str):  if set, return map for specified image only</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            2d ndarray (int), containing the number (ascending) of the last</span>
+<span class="sd">            region referencing the corresponding pixel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">apply_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+        <span class="n">tmpmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">apply_regions</span><span class="p">):</span>
+            <span class="n">tmpmap</span><span class="p">[</span><span class="n">region</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tmpmap</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.coverage"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.coverage">[docs]</a>    <span class="k">def</span> <span class="nf">coverage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Calculates coverage of the total image size as a scalar.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageid (str):  if set, return coverage for specified image only </span>
+<span class="sd">            normalize (bool): if True, divide global result by number of imageids in set.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Total coverage as a floating point number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">imageid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_map</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+            <span class="n">cov</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">cov</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Global coverage for all imageids</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">re</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">re</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                    <span class="n">cm</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_map</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="n">cm</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_map</span><span class="p">(</span><span class="n">re</span><span class="p">)</span>
+
+            <span class="n">cov</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+                <span class="n">cov</span> <span class="o">=</span> <span class="n">cov</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cov</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.plot"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot regions as map of shaded areas with/without corresponding feature values</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageid (str): if set, plot regions for specified image</span>
+<span class="sd">            values (array-like): one feature value per region</span>
+<span class="sd">            cmap (str): name of matplotlib colormap to use</span>
+<span class="sd">            image_only (boolean): if True, return only image content without axes</span>
+<span class="sd">            ax (Axes): axes object to draw to, to include result in other figure</span>
+<span class="sd">            alpha (float): opacity of plotted regions (set &lt; 1 to visualize overlap)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure object, or None if passed an axis to draw on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">apply_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+        <span class="n">tmpmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax1</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;viridis&#39;</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">colormaps</span><span class="p">():</span>
+                <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;viridis&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span>
+
+        <span class="k">if</span> <span class="n">alpha</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="c1"># allow stacking by setting masked values transparent</span>
+            <span class="n">alpha_cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+            <span class="n">alpha_cmap</span><span class="o">.</span><span class="n">set_bad</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">tmpmap</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;gray&#39;</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">apply_regions</span><span class="p">):</span>
+                <span class="n">rmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="n">apply_regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">rmap</span><span class="p">[</span><span class="n">region</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                    <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">rmap</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">alpha_cmap</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> 
+                               <span class="n">vmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">rmap</span><span class="p">[</span><span class="n">region</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">rmap</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">alpha_cmap</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> 
+                               <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">apply_regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If no alpha requested, this is much faster but doesn&#39;t show overlap</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">tmpmap</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;gray&#39;</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="n">apply_regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">rmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_msize</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">apply_regions</span><span class="p">):</span>
+                    <span class="n">rmap</span><span class="p">[</span><span class="n">region</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">rmap</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_map</span><span class="p">(</span><span class="n">imageid</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> 
+                           <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">apply_regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">image_only</span><span class="p">:</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">+=</span> <span class="s1">&#39; &quot;</span><span class="si">{:s}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">imageid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">+=</span> <span class="s1">&#39;: </span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">plt</span><span class="o">.</span><span class="n">isinteractive</span><span class="p">():</span>  <span class="c1"># see ImageSet.plot()</span>
+            <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.plot_regions_on_image"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.plot_regions_on_image">[docs]</a>    <span class="k">def</span> <span class="nf">plot_regions_on_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">imageset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">image_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot region bounding boxes on corresponding image</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageid (str): if set, plot regions for specified image</span>
+<span class="sd">            imageset (ImageSet): ImageSet object containing background image/map</span>
+<span class="sd">            cmap (str): name of matplotlib colormap to use for boundin boxes</span>
+<span class="sd">            fill (boolean): draw shaded filled rectangles instead of boxes</span>
+<span class="sd">            alpha (float): rectangle opacity (only when fill=True)</span>
+<span class="sd">            labels (boolean): if True, draw text labels next to regions</span>
+<span class="sd">            image_only (boolean): if True, return only image content without axes</span>
+<span class="sd">            ax (Axes): axes object to draw to, to include result in other figure</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure object, or None if passed an axis to draw on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">imageset</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">imageid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">imageset</span><span class="o">.</span><span class="n">imageids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;To plot regions on top of image, specify ImageSet containing corresponding background image!&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax1</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">imageset</span><span class="p">[</span><span class="n">imageid</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;gray&#39;</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;viridis&#39;</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">colormaps</span><span class="p">():</span>
+                <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;viridis&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;hsv&#39;</span>
+
+        <span class="n">boxcolors</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">cstep</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span><span class="p">:</span>
+            <span class="n">rmeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">imageid</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rmeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">imageid</span> <span class="o">==</span> <span class="n">imageid</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">rmeta</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">boxcolors</span><span class="p">(</span><span class="n">cstep</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">rmeta</span><span class="p">))</span>
+            <span class="n">cstep</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fill</span><span class="p">:</span>
+                <span class="n">ax1</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">region</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">top</span><span class="p">),</span> <span class="n">region</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax1</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">region</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">top</span><span class="p">),</span> <span class="n">region</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+                <span class="c1"># Draw text labels with sensible default positions</span>
+                <span class="k">if</span> <span class="n">region</span><span class="o">.</span><span class="n">right</span> <span class="o">&gt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="o">.</span><span class="mi">95</span><span class="p">):</span>
+                    <span class="n">tx</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">right</span>
+                    <span class="n">ha</span> <span class="o">=</span> <span class="s1">&#39;right&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tx</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">left</span>
+                    <span class="n">ha</span> <span class="o">=</span> <span class="s1">&#39;left&#39;</span>
+                <span class="k">if</span> <span class="n">region</span><span class="o">.</span><span class="n">bottom</span> <span class="o">&gt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="o">.</span><span class="mi">95</span><span class="p">):</span>
+                    <span class="n">ty</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">top</span> <span class="o">-</span> <span class="mi">5</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ty</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">bottom</span> <span class="o">+</span> <span class="mi">20</span>
+                <span class="n">ax1</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">tx</span><span class="p">,</span> <span class="n">ty</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="n">ha</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">image_only</span><span class="p">:</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">+=</span> <span class="s1">&#39; &quot;</span><span class="si">{:s}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="s1">&#39;: </span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">plt</span><span class="o">.</span><span class="n">isinteractive</span><span class="p">():</span>  <span class="c1"># see ImageSet.plot()</span>
+            <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.apply"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Apply this RegionSet to a specified image.</span>
+
+<span class="sd">        Returns a list of the image arrays &quot;cut out&quot; by each region mask, with</span>
+<span class="sd">        non-selected image areas in black. If regionset is not global, _imageid_ needs</span>
+<span class="sd">        to be specified!</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            image (ndarray): image array to be segmented.</span>
+<span class="sd">            imageid (str): valid imageid (to select image-specific regions if not a global regionset)</span>
+<span class="sd">            crop (bool): if True, return image cropped to bounding box of selected area</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            If crop=False, a list of ndarrays of same size as image, with non-selected areas</span>
+<span class="sd">            zeroed. Else a list of image patch arrays cropped to bounding box size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">apply_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">apply_regions</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">region</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">crop</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">ul_x</span><span class="p">,</span> <span class="n">ul_y</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="p">(</span><span class="n">br_x</span><span class="p">,</span> <span class="n">br_y</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">ul_x</span><span class="p">:</span><span class="n">br_x</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ul_y</span><span class="p">:</span><span class="n">br_y</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">slices</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.export_patches"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.export_patches">[docs]</a>    <span class="k">def</span> <span class="nf">export_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">image_format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">rescale</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Apply this RegionSet to an image array and save the resulting image patches as files.</span>
+
+<span class="sd">        Saves an image of each image part &quot;cut out&quot; by each region mask, cropped by default.</span>
+<span class="sd">        If the RegionSet is not global, imageid needs to be specified!</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            image (ndarray): image array to be segmented.</span>
+<span class="sd">            imageid (str): imageid (to select image-specific regions if not a global regionset)</span>
+<span class="sd">            crop (bool): if True, return image cropped to bounding box of selected area</span>
+<span class="sd">            image_format (str): image format that PIL understands (will also be used for extension)</span>
+<span class="sd">            rescale (bool): if True, scale pixel values to full 0..255 range</span>
+<span class="sd">                before saving (e.g., for saliency maps)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">apply_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+        <span class="n">apply_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_labels</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+        <span class="n">imstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_</span><span class="si">{:s}</span><span class="s1">.</span><span class="si">{:s}</span><span class="s1">&#39;</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">apply_regions</span><span class="p">):</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">region</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">crop</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">ul_x</span><span class="p">,</span> <span class="n">ul_y</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="p">(</span><span class="n">br_x</span><span class="p">,</span> <span class="n">br_y</span><span class="p">)</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">ul_x</span><span class="p">:</span><span class="n">br_x</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ul_y</span><span class="p">:</span><span class="n">br_y</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">imageid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">imageid</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                <span class="n">imageid</span> <span class="o">=</span> <span class="s1">&#39;image&#39;</span>
+
+            <span class="k">if</span> <span class="n">rescale</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">out</span> <span class="o">-</span> <span class="n">out</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">out</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">255.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">*=</span> <span class="mf">255.0</span>
+
+            <span class="n">rimg</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">))</span>
+            <span class="n">rimg</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">imstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imageid</span><span class="p">,</span> <span class="n">apply_labels</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">image_format</span><span class="p">),</span> <span class="n">image_format</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RegionSet.export_patches_from_set"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.export_patches_from_set">[docs]</a>    <span class="k">def</span> <span class="nf">export_patches_from_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageset</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">image_format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">rescale</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Save all sliced image patches from an ImageSet as image files. </span>
+
+<span class="sd">        Saves an image of each image part &quot;cut out&quot; by each region mask, cropped by default.</span>
+<span class="sd">        If the RegionSet is not global, only images with valid region masks will be processed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            imageset (ImageSet): a valid ImageSet containing images to slice</span>
+<span class="sd">            imageid (str): imageid (to select image-specific regions if not a global regionset)</span>
+<span class="sd">            crop (bool): if True, return image cropped to bounding box of selected area</span>
+<span class="sd">            image_format (str): image format that PIL understands (will also be used for extension)</span>
+<span class="sd">            rescale (bool): if True, scale pixel values to full 0..255 range</span>
+<span class="sd">                before saving (e.g., for saliency maps)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imageset</span><span class="p">,</span> <span class="n">ImageSet</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;First argument must be an ImageSet! To slice a single image, use export_patches().&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cimg</span> <span class="ow">in</span> <span class="n">imageset</span><span class="o">.</span><span class="n">imageids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_global</span> <span class="ow">and</span> <span class="n">cimg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">imageids</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: RegionSet contains image-specific regions, but no regions available for </span><span class="si">{:s}</span><span class="s1">. Skipped.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cimg</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">export_patches</span><span class="p">(</span><span class="n">imageset</span><span class="p">[</span><span class="n">cimg</span><span class="p">],</span> <span class="n">imageid</span><span class="o">=</span><span class="n">cimg</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">image_format</span><span class="o">=</span><span class="n">image_format</span><span class="p">,</span> <span class="n">rescale</span><span class="o">=</span><span class="n">rescale</span><span class="p">)</span></div>
+            
+
+<div class="viewcode-block" id="RegionSet.fixated"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.RegionSet.fixated">[docs]</a>    <span class="k">def</span> <span class="nf">fixated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fixations</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude_first</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns visited / fixated regions using data from a Fixations object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fixations (Fixations/DataFrame): fixation data to test against regions</span>
+<span class="sd">            imageid (str): imageid (to select image-specific regions if not a global regionset)</span>
+<span class="sd">            count (bool): if True, return number of fixations per region instead of boolean values</span>
+<span class="sd">            exclude_first (bool): if True, first fixated region will always be returned as NaN</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            1D ndarray (float) containing number of fixations per region (if count=True) </span>
+<span class="sd">            or the values 0.0 (region was not fixated) or 1.0 (region was fixated)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">apply_regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_region</span><span class="p">(</span><span class="n">imageid</span><span class="p">)</span>
+        <span class="n">vis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">apply_regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        
+        <span class="c1"># Drop out-of-bounds fixations</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[(</span><span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_xpx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> 
+                             <span class="p">(</span><span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_xpx</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> 
+                             <span class="p">(</span><span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_ypx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> 
+                             <span class="p">(</span><span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_ypx</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+    
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">first_fix</span> <span class="o">=</span> <span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_fixid</span><span class="p">]</span> <span class="o">==</span> <span class="nb">min</span><span class="p">(</span><span class="n">fixations</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_fixid</span><span class="p">])]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_fix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">exclude_first</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: you have requested to drop the first fixated region, but more than one &#39;</span> <span class="o">+</span>
+                      <span class="s1">&#39;location (</span><span class="si">{:d}</span><span class="s1">) matches the lowest fixation ID! Either your fixation &#39;</span> <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">first_fix</span><span class="p">))</span> <span class="o">+</span>
+                      <span class="s1">&#39;IDs are not unique or the passed dataset contains data from multiple images or conditions.&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">roi</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">apply_regions</span><span class="p">):</span>
+                <span class="n">fv</span> <span class="o">=</span> <span class="n">roi</span><span class="p">[</span><span class="n">fix</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_ypx</span><span class="p">],</span> <span class="n">fix</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_xpx</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fv</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">num_fix</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">fv</span><span class="p">)</span>
+                    <span class="n">vis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_fix</span>
+
+                <span class="k">if</span> <span class="n">exclude_first</span><span class="p">:</span>
+                    <span class="n">is_first</span> <span class="o">=</span> <span class="n">roi</span><span class="p">[</span><span class="n">first_fix</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_ypx</span><span class="p">],</span> <span class="n">first_fix</span><span class="p">[</span><span class="n">fixations</span><span class="o">.</span><span class="n">_xpx</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">is_first</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_first</span><span class="p">):</span>
+                        <span class="n">vis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="k">elif</span> <span class="n">is_first</span><span class="p">:</span>
+                        <span class="n">vis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">count</span><span class="p">:</span>
+            <span class="n">vis</span><span class="p">[</span><span class="n">vis</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">vis</span><span class="p">[</span><span class="n">vis</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">return</span> <span class="n">vis</span></div></div>
+
+
+
+<div class="viewcode-block" id="GridRegionSet"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.GridRegionSet">[docs]</a><span class="k">class</span> <span class="nc">GridRegionSet</span><span class="p">(</span><span class="n">RegionSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; RegionSet defining an n-by-m regular grid covering the full image size.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        cells (list): list of bounding box tuples for each cell,</span>
+<span class="sd">            each formatted as (left, top, right, bottom)</span>
+<span class="sd">        gridsize (tuple): grid dimensions as (width, height). If unspecified,</span>
+<span class="sd">            gridfix will try to choose a sensible default.</span>
+<span class="sd">        label (string): optional label to distinguish between RegionSets</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a new grid RegionSet</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (tuple): image dimensions, specified as (width, height).</span>
+<span class="sd">            gridsize(tuple): grid dimensions, specified as (width, height).</span>
+<span class="sd">            region_labels (string): list of optional region labels (default: cell#)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">gridsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gridsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suggest_grid</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Note: no grid size was specified. Using </span><span class="si">{:d}</span><span class="s1">x</span><span class="si">{:d}</span><span class="s1"> based on image size.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gridsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">cells</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grid</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">)</span>
+        <span class="n">RegionSet</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">regions</span><span class="o">=</span><span class="n">regions</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">region_labels</span><span class="o">=</span><span class="n">region_labels</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridsize</span> <span class="o">=</span> <span class="n">gridsize</span>
+
+        <span class="c1"># List of region bboxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cells</span> <span class="o">=</span> <span class="n">cells</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Short string representation for printing &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="s1">&#39;&lt;gridfix.GridRegionSet</span><span class="si">{:s}</span><span class="s1">, size=</span><span class="si">{:s}</span><span class="s1">, </span><span class="si">{:d}</span><span class="s1">x</span><span class="si">{:d}</span><span class="s1"> grid, </span><span class="si">{:d}</span><span class="s1"> cell</span><span class="si">{:s}</span><span class="s1">, memory=</span><span class="si">{:.1f}</span><span class="s1"> kB&gt;&#39;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lab</span> <span class="o">=</span> <span class="s1">&#39; (</span><span class="si">{:s}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lab</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">num_s</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">num_r</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_r</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">num_s</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
+        <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lab</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gridsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">gridsize</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_r</span><span class="p">,</span> 
+                        <span class="n">num_s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_suggest_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Suggest grid dimensions based on image size.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (tuple): image dimensions, specified as (width, height).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Suggested grid size tuple as (width, height).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">aspect</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">s_width</span> <span class="o">=</span> <span class="n">aspect</span><span class="o">.</span><span class="n">numerator</span>
+        <span class="n">s_height</span> <span class="o">=</span> <span class="n">aspect</span><span class="o">.</span><span class="n">denominator</span>
+        <span class="k">if</span> <span class="n">s_width</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">s_width</span> <span class="o">*=</span> <span class="mi">2</span>
+            <span class="n">s_height</span> <span class="o">*=</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">s_width</span><span class="p">,</span> <span class="n">s_height</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Build m-by-n (width,height) grid as 3D nparray.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (tuple): image dimensions, specified as (width, height).</span>
+<span class="sd">            gridsize(tuple): grid dimensions, specified as (width, height).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple containing the grid regions and their bounding box coordinates</span>
+<span class="sd">            as (grid, cells):</span>
+
+<span class="sd">                grid (numpy.ndarray): regions for RegionSet creation</span>
+<span class="sd">                cells (list): list of bounding box tuples for each cell, </span>
+<span class="sd">                    each formatted as (left, top, right, bottom)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="n">_msize</span> <span class="o">=</span> <span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">cell_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">cell_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">n_cells</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gridsize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_cells</span><span class="p">,)</span> <span class="o">+</span> <span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Sanity check: do nothing if image dimensions not cleanly divisible by grid</span>
+        <span class="k">if</span> <span class="n">width</span> <span class="o">%</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">height</span> <span class="o">%</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="s1">&#39;Error: image dimensions not cleanly divisible by grid! image=(</span><span class="si">{:d}</span><span class="s1">x</span><span class="si">{:d}</span><span class="s1">), grid=(</span><span class="si">{:d}</span><span class="s1">x</span><span class="si">{:d}</span><span class="s1">)&#39;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gridsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1"># Create a mask of 1s/True for each cell</span>
+        <span class="n">cellno</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">y_es</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">cell_y</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">x_es</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">cell_x</span><span class="p">):</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="n">mask</span><span class="p">[</span><span class="n">y_es</span><span class="p">:</span><span class="n">y_es</span> <span class="o">+</span> <span class="n">cell_y</span><span class="p">,</span> <span class="n">x_es</span><span class="p">:</span><span class="n">x_es</span> <span class="o">+</span> <span class="n">cell_x</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">grid</span><span class="p">[</span><span class="n">cellno</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span>
+                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x_es</span><span class="p">,</span> <span class="n">y_es</span><span class="p">,</span> <span class="n">x_es</span> <span class="o">+</span> <span class="n">cell_x</span><span class="p">,</span> <span class="n">y_es</span> <span class="o">+</span> <span class="n">cell_y</span><span class="p">))</span>
+                <span class="n">cellno</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">cells</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="BBoxRegionSet"><a class="viewcode-back" href="../../gridfix.html#gridfix.regionset.BBoxRegionSet">[docs]</a><span class="k">class</span> <span class="nc">BBoxRegionSet</span><span class="p">(</span><span class="n">RegionSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; RegionSet based on rectangular bounding boxes.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        cells (list): list of bounding box tuples for each cell,</span>
+<span class="sd">            each formatted as (left, top, right, bottom)</span>
+<span class="sd">        label (string): optional label to distinguish between RegionSets</span>
+<span class="sd">        from_file (string): filename in case regions were loaded from file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">bounding_boxes</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
+                 <span class="n">imageid</span><span class="o">=</span><span class="s1">&#39;imageid&#39;</span><span class="p">,</span> <span class="n">regionid</span><span class="o">=</span><span class="s1">&#39;regionid&#39;</span><span class="p">,</span> <span class="n">bbox_cols</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="s1">&#39;y1&#39;</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot; Create new BBoxRegionSet</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (tuple):   image dimensions, specified as (width, height).</span>
+<span class="sd">            bounding_boxes: one of the following: </span>
+<span class="sd">                name of a text/CSV file with columns ([imageid], [regionid], x1, y1, x2, y2)</span>
+<span class="sd">                list of 4-tuples OR 2D ndarray with columns (x1, y1, x2, y2) for global bboxes</span>
+<span class="sd">            region_labels (str): list of optional region labels if bounding_boxes is a global array/list</span>
+<span class="sd">            imageid (str): name of imageid column in input file (if not present, bboxes will be treated as global)</span>
+<span class="sd">            regionid (str): name of regionid column in input file</span>
+<span class="sd">            sep (str): separator to use when reading files</span>
+<span class="sd">            bbox_cols: tuple of column names for (&#39;left&#39;, &#39;top&#39;, &#39;right&#39;, &#39;bottom&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_imageid</span> <span class="o">=</span> <span class="n">imageid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regionid</span> <span class="o">=</span> <span class="n">regionid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cols</span> <span class="o">=</span> <span class="n">bbox_cols</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bounding_boxes</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">):</span>
+            <span class="c1"># Passed a DataFrame</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">bounding_boxes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">bounding_boxes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="c1"># Passed a file name</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">read_table</span><span class="p">(</span><span class="n">bounding_boxes</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span> <span class="o">=</span> <span class="n">bounding_boxes</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;String argument supplied to BBoxRegionSet, but not a valid CSV file!&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Try array type</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">bounding_boxes</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="s1">&#39;y1&#39;</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="s1">&#39;y2&#39;</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Supplied argument to BBoxRegionSet not in the form (x1, y1, x2, y2)&#39;</span><span class="p">)</span>             
+
+        <span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_bbox_df</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">region_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">region_labels</span>
+        <span class="n">RegionSet</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">regions</span><span class="o">=</span><span class="n">regions</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">region_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_parse_bbox_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Parse a DataFrame of bounding boxes into a region dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (DataFrame): DataFrame of bounding box coordinates</span>
+<span class="sd">            size (tuple): image size as (width, height), to check for out-of-bounds coordinates</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple of dicts as (regions, labels), using imageids as keys. Resulting dicts can be</span>
+<span class="sd">            passed to RegionSet.__init__ directly. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">regions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">_msize</span> <span class="o">=</span> <span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imageid</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="c1"># Image-specific bounding boxes</span>
+            <span class="k">for</span> <span class="n">imid</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_imageid</span><span class="p">):</span>
+                <span class="n">N</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N</span><span class="p">,)</span> <span class="o">+</span> <span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="n">lab</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">bidx</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regionid</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="n">l</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_regionid</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">l</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">bidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">err</span> <span class="o">=</span> <span class="s1">&#39;At least one coordinate of region </span><span class="si">{:s}</span><span class="s1">/</span><span class="si">{:s}</span><span class="s1"> exceeds the specified image size!&#39;</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imid</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+
+                    <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">err</span> <span class="o">=</span> <span class="s1">&#39;At least one dimension of </span><span class="si">{:s}</span><span class="s1">/</span><span class="si">{:s}</span><span class="s1"> has a negative length! Coordinates in wrong order?&#39;</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imid</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+
+
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+                    <span class="n">mask</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">reg</span><span class="p">[</span><span class="n">bidx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span>
+                    <span class="n">lab</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                    <span class="n">bidx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="n">regions</span><span class="p">[</span><span class="n">imid</span><span class="p">]</span> <span class="o">=</span> <span class="n">reg</span>
+                <span class="n">labels</span><span class="p">[</span><span class="n">imid</span><span class="p">]</span> <span class="o">=</span> <span class="n">lab</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Global bounding boxes</span>
+            <span class="n">reg</span> <span class="o">=</span> <span class="n">reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">)</span> <span class="o">+</span> <span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="n">lab</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cols</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regionid</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">l</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_regionid</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">l</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">err</span> <span class="o">=</span> <span class="s1">&#39;At least one coordinate of region </span><span class="si">{:s}</span><span class="s1"> exceeds the specified image size!&#39;</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">_msize</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="n">mask</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">reg</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span>
+                <span class="n">lab</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+            <span class="n">regions</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="n">reg</span><span class="p">}</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="n">lab</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Immo Schuetz.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

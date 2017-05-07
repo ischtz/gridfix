@@ -1,0 +1,10 @@
+Examples
+========
+
+This section contains some exemplary Python scripts using the GridFix toolbox for common analyses. These are supposed to get you started but do not aim to show off all available features - please check the module documentation for more details.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   GridfixExamples.ipynb

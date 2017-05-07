@@ -1,0 +1,10 @@
+GridFix Tutorial
+===================================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   tutorial/Tutorial1_ImagesRegionsFixations.ipynb
+   tutorial/Tutorial2_ImageFeatures.ipynb
+   tutorial/Tutorial3_GLMMPreprocessing.ipynb

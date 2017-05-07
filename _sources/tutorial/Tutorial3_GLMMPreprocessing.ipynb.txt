@@ -1,0 +1,400 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "# Part 3: GLMM Analysis\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "## 1. Creating the model predictors using GridFix\n",
+    "\n",
+    "In this part of the tutorial, we will use the grid and image features defined in the previous chapters to create a GLMM predictor matrix and output some model code for R. First, let's reproduce the analysis from previous chapters and add some features that might influence each grid cell's fixation probability:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "\n",
+    "import numpy as np\n",
+    "import matplotlib as mp\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "from gridfix import *\n",
+    "\n",
+    "# Load images and define 8x6 grid from part 1\n",
+    "images = ImageSet('images/tutorial_images.csv', label='tutorial')\n",
+    "grid = GridRegionSet(size=images.size, gridsize=(8,6), label='testgrid')\n",
+    "\n",
+    "# Define some simple features from part 2\n",
+    "fLum = LuminanceFeature(grid, images)\n",
+    "fEdge = SobelEdgeFeature(grid, images)\n",
+    "fCent = CentralBiasFeature(grid, images, measure='gaussian', sig2=0.23, nu=0.45)\n",
+    "\n",
+    "# Load IKN98 feature maps and define a MapFeature\n",
+    "ids = ['112', '67', '6', '52', '37', '106', '129', '9', '107', '97', '58', '111', '85', '149', '150']\n",
+    "maps = ImageSet('maps', imageids=ids, mat_var='IKN98')\n",
+    "fIKN = MapFeature(grid, maps, stat=np.mean)\n",
+    "\n",
+    "# Load fixation data\n",
+    "fix = Fixations('tutorial_fixations.csv', imageid='image_id', fixid='CURRENT_FIX_INDEX', \n",
+    "                x='CURRENT_FIX_X', y='CURRENT_FIX_Y', imageset=images)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now the actual GLMM preprocessing can be performed using a _FixationModel_ object which combines fixation data, RegionSet and all features specified in the _features=_ argument into a common predictor matrix, which can then be loaded into R. With a big dataset, this could take a while, but for this tutorial, updating the model should be a matter of a few seconds. Note that the _chunks=_ argument specifies the names of columns over which data should not be aggregated, e.g. individual subjects, while the _features=_ argument contains a Python list of the actual Feature objects defined above.\n",
+    "\n",
+    "In our example, this predictor matrix contains one line for each subject, image and grid cell, which will yield 8 x 15 x 48 = 5760 individual data points to be entered into GLMM. We can print the resulting model object to verify this:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true,
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<gridfix.FixationModel, 5760 samples, DV=fixated, chunked by: ['subject_number', 'image_id']>\n",
+      "Fixations:\n",
+      "\t<gridfix.Fixations data set, 2556 samples, 15 images>\n",
+      "Images:\n",
+      "\t<gridfix.ImageSet \"tutorial\", 15 images, size=(800, 600), normalized>\n",
+      "Regions:\n",
+      "\t<gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB>\n",
+      "\n",
+      "Features:\n",
+      "\tfCentr\tCentralBiasFeature\n",
+      "\tfLumin\tLuminanceFeature\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "model = FixationModel(fix, grid, chunks=['subject_number', 'image_id'], features=[fLum, fCent], dv_type='fixated')\n",
+    "print(model)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The resulting predictor matrix now contains one row per combination of image and region (and possible other variables used for chunking in the model specification, such as the subject id). Within each row, the column _dvFix_ indicates the fixation state of each cell, i.e., whether it was fixated (1) or not (0), while the remaining columns contain the feature values for the corresponding regions - here, mean cell luminance (fLumin) and distance from image center following an anisotropic Gaussian CB model (fCentr). \n",
+    "\n",
+    "The predictor matrix can be accessed as a DataFrame using the _predictors_ attribute of the generated model object:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "    subject_number image_id  region  dvFix    fCentr    fLumin\n",
+      "0            201.0      106     1.0    0.0  0.971265  0.484337\n",
+      "1            201.0      106     2.0    0.0  0.935023  0.484956\n",
+      "2            201.0      106     3.0    0.0  0.888111  0.567180\n",
+      "3            201.0      106     4.0    0.0  0.853275  0.657081\n",
+      "4            201.0      106     5.0    0.0  0.853474  0.792208\n",
+      "5            201.0      106     6.0    0.0  0.888567  0.800865\n",
+      "6            201.0      106     7.0    0.0  0.935464  0.779572\n",
+      "7            201.0      106     8.0    0.0  0.971537  0.681514\n",
+      "8            201.0      106     9.0    0.0  0.903758  0.489519\n",
+      "9            201.0      106    10.0    1.0  0.782377  0.395110\n",
+      "10           201.0      106    11.0    0.0  0.625257  0.555128\n",
+      "11           201.0      106    12.0    0.0  0.508580  0.538794\n",
+      "12           201.0      106    13.0    0.0  0.509249  0.882058\n",
+      "13           201.0      106    14.0    0.0  0.626785  0.983519\n",
+      "14           201.0      106    15.0    0.0  0.783854  0.958491\n",
+      "15           201.0      106    16.0    0.0  0.904671  0.880573\n",
+      "16           201.0      106    17.0    1.0  0.824134  0.293749\n",
+      "17           201.0      106    18.0    0.0  0.602332  0.349848\n",
+      "18           201.0      106    19.0    1.0  0.315222  0.542880\n",
+      "19           201.0      106    20.0    1.0  0.102016  0.561462\n",
+      "20           201.0      106    21.0    0.0  0.103238  0.574169\n",
+      "21           201.0      106    22.0    1.0  0.318015  0.756059\n",
+      "22           201.0      106    23.0    1.0  0.605031  0.922472\n",
+      "23           201.0      106    24.0    0.0  0.825803  0.944817\n",
+      "24           201.0      106    25.0    1.0  0.824666  0.224936\n",
+      "25           201.0      106    26.0    0.0  0.603535  0.431133\n",
+      "26           201.0      106    27.0    1.0  0.317293  0.583595\n",
+      "27           201.0      106    28.0    1.0  0.104732  0.436877\n",
+      "28           201.0      106    29.0    1.0  0.105951  0.428582\n",
+      "29           201.0      106    30.0    0.0  0.320077  0.625334\n",
+      "..             ...      ...     ...    ...       ...       ...\n",
+      "18           209.0       97    19.0    1.0  0.315222  0.507149\n",
+      "19           209.0       97    20.0    1.0  0.102016  0.517995\n",
+      "20           209.0       97    21.0    1.0  0.103238  0.446762\n",
+      "21           209.0       97    22.0    1.0  0.318015  0.482895\n",
+      "22           209.0       97    23.0    1.0  0.605031  0.414101\n",
+      "23           209.0       97    24.0    0.0  0.825803  0.408590\n",
+      "24           209.0       97    25.0    0.0  0.824666  0.397340\n",
+      "25           209.0       97    26.0    1.0  0.603535  0.358494\n",
+      "26           209.0       97    27.0    0.0  0.317293  0.398970\n",
+      "27           209.0       97    28.0    0.0  0.104732  0.451527\n",
+      "28           209.0       97    29.0    0.0  0.105951  0.602446\n",
+      "29           209.0       97    30.0    0.0  0.320077  0.470265\n",
+      "30           209.0       97    31.0    0.0  0.606226  0.427404\n",
+      "31           209.0       97    32.0    1.0  0.826330  0.343827\n",
+      "32           209.0       97    33.0    0.0  0.904629  0.360975\n",
+      "33           209.0       97    34.0    0.0  0.784346  0.354982\n",
+      "34           209.0       97    35.0    0.0  0.628647  0.551488\n",
+      "35           209.0       97    36.0    0.0  0.513026  0.635785\n",
+      "36           209.0       97    37.0    0.0  0.513689  0.661605\n",
+      "37           209.0       97    38.0    0.0  0.630161  0.611297\n",
+      "38           209.0       97    39.0    0.0  0.785810  0.546509\n",
+      "39           209.0       97    40.0    1.0  0.905534  0.480870\n",
+      "40           209.0       97    41.0    0.0  0.971697  0.359889\n",
+      "41           209.0       97    42.0    0.0  0.936000  0.428950\n",
+      "42           209.0       97    43.0    0.0  0.889793  0.546199\n",
+      "43           209.0       97    44.0    0.0  0.855480  0.628933\n",
+      "44           209.0       97    45.0    0.0  0.855677  0.662128\n",
+      "45           209.0       97    46.0    0.0  0.890243  0.647953\n",
+      "46           209.0       97    47.0    0.0  0.936435  0.627720\n",
+      "47           209.0       97    48.0    0.0  0.971965  0.506024\n",
+      "\n",
+      "[5760 rows x 6 columns]\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(model.predictors)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To facilitate analysis of the generated predictor matrix in R, GridFix also generates R source code that contains the necessary commands to import the generated data file, define factors, standardize predictors and set up a model formula. This can serve as a starting point for analysis but should be adapted to the individual factor structure of each hypothesis and dataset - as a reminder, the actual call to _glmer_ is commented out. \n",
+    "\n",
+    "The _model.save()_ function saves both the predictor matrix and the R code to files to be read into R. Note that the file name argument should be the _base name_ of generated files, e.g., model.save(\"tutorial\") will generate tutorial.csv and tutorial.R."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {
+    "collapsed": false,
+    "deletable": true,
+    "editable": true,
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "# GridFix GLMM R source, generated on 04.05.17, 14:45:09\n",
+      "# input file:\tgridfix.csv\n",
+      "# RegionSet:\t<gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB>\n",
+      "# DV type:\tfixated\n",
+      "\n",
+      "library(lme4)\n",
+      "\n",
+      "data  <- read.table(\"gridfix.csv\", header=T, sep=\"\\t\", row.names=NULL)\n",
+      "\n",
+      "# Define R factors for all chunking variables and group dummy codes\n",
+      "data$subject_number <- as.factor(data$subject_number)\n",
+      "data$image_id <- as.factor(data$image_id)\n",
+      "\n",
+      "# Center and scale predictors\n",
+      "data$fCentr_C <- scale(data$fCentr, center=TRUE, scale=TRUE)\n",
+      "data$fLumin_C <- scale(data$fLumin, center=TRUE, scale=TRUE)\n",
+      "\n",
+      "# NOTE: this source code can only serve as a scaffolding for your own analysis!\n",
+      "# You MUST adapt the GLMM model formula below to your model, then uncomment the corresponding line!\n",
+      "#model <- glmer(dvFix ~ 1 + fCentr_C  + fLumin_C  + (1 | image_id), control=glmerControl(optimizer=\"bobyqa\"), data=data, family=binomial)\n",
+      "\n",
+      "save(file=\"gridfix_GLMM.Rdata\", list = c(\"model\"))\n",
+      "\n",
+      "print(summary(model))\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Print the source code here as an example\n",
+    "print(model.r_source())\n",
+    "\n",
+    "model.save('tutorial')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Evaluating the model using R\n",
+    "\n",
+    "**Note: The following cells will only work interactively if you have a working R environment and the rpy2 Python module installed. The next cell will set up the %%R magic code to run R code within this notebook**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The rpy2.ipython extension is already loaded. To reload it, use:\n",
+      "  %reload_ext rpy2.ipython\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Initialize R environment for Jupyter notebook using rpy2\n",
+    "%load_ext rpy2.ipython"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The Python code cell above saved the tutorial model (central bias and luminance) to \"tutorial.csv\", which we will now load into R. The following code example fits a model containing central bias and mean cell luminance as fixed factors and includes random intercepts (but not slopes) for individual images. The resulting R model object can then be manipulated using R commands as usual and/or saved to an Rdata file."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Generalized linear mixed model fit by maximum likelihood (Laplace\n",
+       "  Approximation) [glmerMod]\n",
+       " Family: binomial  ( logit )\n",
+       "Formula: dvFix ~ 1 + fCentr_C + fLumin_C + (1 | image_id)\n",
+       "   Data: data\n",
+       "Control: glmerControl(optimizer = \"bobyqa\")\n",
+       "\n",
+       "     AIC      BIC   logLik deviance df.resid \n",
+       "  6318.4   6345.0  -3155.2   6310.4     5756 \n",
+       "\n",
+       "Scaled residuals: \n",
+       "    Min      1Q  Median      3Q     Max \n",
+       "-1.3908 -0.5507 -0.4629  0.7890  2.5595 \n",
+       "\n",
+       "Random effects:\n",
+       " Groups   Name        Variance Std.Dev.\n",
+       " image_id (Intercept) 0.007605 0.0872  \n",
+       "Number of obs: 5760, groups:  image_id, 15\n",
+       "\n",
+       "Fixed effects:\n",
+       "            Estimate Std. Error z value Pr(>|z|)    \n",
+       "(Intercept) -1.01691    0.03874 -26.250   <2e-16 ***\n",
+       "fCentr_C    -0.65888    0.02978 -22.126   <2e-16 ***\n",
+       "fLumin_C    -0.07915    0.03374  -2.346    0.019 *  \n",
+       "---\n",
+       "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n",
+       "\n",
+       "Correlation of Fixed Effects:\n",
+       "         (Intr) fCnt_C\n",
+       "fCentr_C  0.157       \n",
+       "fLumin_C  0.027 -0.090\n"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "%%R\n",
+    "# GridFix GLMM R source, generated on 04.05.17, 14:22:46\n",
+    "# input file:\tgridfix.csv\n",
+    "# RegionSet:\t<gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB>\n",
+    "# DV type:\tfixated\n",
+    "\n",
+    "library(lme4)\n",
+    "\n",
+    "data  <- read.table(\"tutorial.csv\", header=T, sep=\"\\t\", row.names=NULL)\n",
+    "\n",
+    "# Define R factors for all chunking variables and group dummy codes\n",
+    "data$subject_number <- as.factor(data$subject_number)\n",
+    "data$image_id <- as.factor(data$image_id)\n",
+    "\n",
+    "# Center and scale predictors\n",
+    "data$fCentr_C <- scale(data$fCentr, center=TRUE, scale=TRUE)\n",
+    "data$fLumin_C <- scale(data$fLumin, center=TRUE, scale=TRUE)\n",
+    "\n",
+    "# NOTE: this source code can only serve as a scaffolding for your own analysis!\n",
+    "# You MUST adapt the GLMM model formula below to your model, then uncomment the corresponding line!\n",
+    "model <- glmer(dvFix ~ 1 + fCentr_C  + fLumin_C  + (1 | image_id), control=glmerControl(optimizer=\"bobyqa\"), data=data, family=binomial)\n",
+    "\n",
+    "print(summary(model))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": true,
+    "editable": true
+   },
+   "source": [
+    "## 4. Concluding Remarks\n",
+    "\n",
+    "This concludes the GridFix tutorial - we hope that it can prove helpful in setting up a preprocessing script and GLMM-based fixation analysis. For more details of supported image features and other attributes of the GridFix toolbox, you can use the navigation bar on the left to browse the module documentation or look at some example scripts for common analyses. Thank you for your interest in this method!\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}

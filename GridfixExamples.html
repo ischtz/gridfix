@@ -1,0 +1,590 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4.1. Slice images into patches using a RegionSet &mdash; GridFix 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="GridFix 0.2 documentation" href="index.html"/>
+        <link rel="up" title="4. Examples" href="examples.html"/>
+        <link rel="next" title="5. gridfix" href="modules.html"/>
+        <link rel="prev" title="4. Examples" href="examples.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> GridFix
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="examples.html">4. Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.1. Slice images into patches using a RegionSet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Effects-of-local-saliency-on-fixation-probability">4.2. Effects of local saliency on fixation probability</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">5. Module Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GridFix</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="examples.html">4. Examples</a> &raquo;</li>
+        
+      <li>4.1. Slice images into patches using a RegionSet</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/GridfixExamples.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-bold { font-weight: bold; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Slice-images-into-patches-using-a-RegionSet">
+<h1>4.1. Slice images into patches using a RegionSet<a class="headerlink" href="#Slice-images-into-patches-using-a-RegionSet" title="Permalink to this headline">¶</a></h1>
+<p>Sometimes it is necessary to save the actual image patches generated by
+a RegionSet, e.g. for a poster / talks slide or simply to verify that
+the correct image areas are selected. This short example script exports
+all patches generated by a 4x3 grid on all images from the tutorial
+image set (15 images) into PNG files (15 x 12 = 180 output files!).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">gridfix</span> <span class="k">import</span> <span class="o">*</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Creates a 4x3 grid region set, then cuts out all selected regions from every image in the</span>
+<span class="sd">example ImageSet and save them to individual files.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">imgs</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;images/tutorial_images.csv&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;tutorial&#39;</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">GridRegionSet</span><span class="p">(</span><span class="n">imgs</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">export_patches_from_set</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Effects-of-local-saliency-on-fixation-probability">
+<h1>4.2. Effects of local saliency on fixation probability<a class="headerlink" href="#Effects-of-local-saliency-on-fixation-probability" title="Permalink to this headline">¶</a></h1>
+<p>This example illustrates one of the most basic use cases of the GridFix
+toolbox: how does the local saliency value calculated by a given model
+of visual saliency influence fixation probabilities?</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">gridfix</span> <span class="k">import</span> <span class="o">*</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Evaluates maps generated by the saliency model of Itti, Koch &amp; Niebur (1998)</span>
+<span class="sd">for their predictive power of fixations on an 8x6 regular grid. This is a minimal</span>
+<span class="sd">example for a GridFix analysis using a single feature.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Analysis grid</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">GridRegionSet</span><span class="p">((</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="c1"># Saliency maps and corresponding feature</span>
+<span class="n">maps</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;maps/tutorial_maps.csv&#39;</span><span class="p">,</span> <span class="n">mat_var</span><span class="o">=</span><span class="s1">&#39;IKN98&#39;</span><span class="p">)</span>
+<span class="n">sal</span> <span class="o">=</span> <span class="n">MapFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">maps</span><span class="p">)</span> <span class="c1"># default = mean</span>
+
+<span class="c1"># Fixation data with custom column names</span>
+<span class="n">fix</span> <span class="o">=</span> <span class="n">Fixations</span><span class="p">(</span><span class="s1">&#39;tutorial_fixations.csv&#39;</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="s1">&#39;image_id&#39;</span><span class="p">,</span> <span class="n">fixid</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_INDEX&#39;</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_X&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_Y&#39;</span><span class="p">,</span> <span class="n">imageset</span><span class="o">=</span><span class="n">maps</span><span class="p">)</span>
+
+<span class="c1"># Generate model predictors</span>
+<span class="n">salmodel</span> <span class="o">=</span> <span class="n">FixationModel</span><span class="p">(</span><span class="n">fix</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;subject_number&#39;</span><span class="p">,</span> <span class="s1">&#39;image_id&#39;</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="n">sal</span><span class="p">])</span>
+<span class="n">salmodel</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;example2&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">salmodel</span><span class="o">.</span><span class="n">predictors</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+    subject_number image_id  region  dvFix    fMapFe
+0            201.0      106     1.0    0.0  0.011996
+1            201.0      106     2.0    0.0  0.051250
+2            201.0      106     3.0    0.0  0.029515
+3            201.0      106     4.0    0.0  0.032837
+4            201.0      106     5.0    0.0  0.020327
+5            201.0      106     6.0    0.0  0.038597
+6            201.0      106     7.0    0.0  0.024676
+7            201.0      106     8.0    0.0  0.017135
+8            201.0      106     9.0    0.0  0.029146
+9            201.0      106    10.0    1.0  0.129266
+10           201.0      106    11.0    0.0  0.088838
+11           201.0      106    12.0    0.0  0.169775
+12           201.0      106    13.0    0.0  0.093220
+13           201.0      106    14.0    0.0  0.085825
+14           201.0      106    15.0    0.0  0.046923
+15           201.0      106    16.0    0.0  0.025545
+16           201.0      106    17.0    1.0  0.209219
+17           201.0      106    18.0    0.0  0.231642
+18           201.0      106    19.0    1.0  0.130784
+19           201.0      106    20.0    1.0  0.310311
+20           201.0      106    21.0    0.0  0.447962
+21           201.0      106    22.0    1.0  0.709044
+22           201.0      106    23.0    1.0  0.224838
+23           201.0      106    24.0    0.0  0.029678
+24           201.0      106    25.0    1.0  0.343682
+25           201.0      106    26.0    0.0  0.203359
+26           201.0      106    27.0    1.0  0.146591
+27           201.0      106    28.0    1.0  0.328040
+28           201.0      106    29.0    1.0  0.507897
+29           201.0      106    30.0    0.0  0.431581
+..             ...      ...     ...    ...       ...
+18           209.0       97    19.0    1.0  0.595876
+19           209.0       97    20.0    1.0  0.411496
+20           209.0       97    21.0    1.0  0.464216
+21           209.0       97    22.0    1.0  0.660822
+22           209.0       97    23.0    1.0  0.664543
+23           209.0       97    24.0    0.0  0.308240
+24           209.0       97    25.0    0.0  0.154441
+25           209.0       97    26.0    1.0  0.506913
+26           209.0       97    27.0    0.0  0.566026
+27           209.0       97    28.0    0.0  0.508420
+28           209.0       97    29.0    0.0  0.229688
+29           209.0       97    30.0    0.0  0.649280
+30           209.0       97    31.0    0.0  0.492168
+31           209.0       97    32.0    1.0  0.264287
+32           209.0       97    33.0    0.0  0.144345
+33           209.0       97    34.0    0.0  0.461687
+34           209.0       97    35.0    0.0  0.293705
+35           209.0       97    36.0    0.0  0.096766
+36           209.0       97    37.0    0.0  0.064559
+37           209.0       97    38.0    0.0  0.128566
+38           209.0       97    39.0    0.0  0.231390
+39           209.0       97    40.0    1.0  0.324227
+40           209.0       97    41.0    0.0  0.041193
+41           209.0       97    42.0    0.0  0.092233
+42           209.0       97    43.0    0.0  0.073489
+43           209.0       97    44.0    0.0  0.038960
+44           209.0       97    45.0    0.0  0.041190
+45           209.0       97    46.0    0.0  0.044402
+46           209.0       97    47.0    0.0  0.066324
+47           209.0       97    48.0    0.0  0.141121
+
+[5760 rows x 5 columns]
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="5. gridfix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="examples.html" class="btn btn-neutral" title="4. Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Immo Schuetz.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

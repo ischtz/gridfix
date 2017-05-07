@@ -1,0 +1,791 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.3. Part 3: GLMM Analysis &mdash; GridFix 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="GridFix 0.2 documentation" href="../index.html"/>
+        <link rel="up" title="3. GridFix Tutorial" href="../tutorial.html"/>
+        <link rel="next" title="4. Examples" href="../examples.html"/>
+        <link rel="prev" title="3.2. Part 2: creating and importing image features" href="Tutorial2_ImageFeatures.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GridFix
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">3. Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Tutorial1_ImagesRegionsFixations.html">3.1. Part 1: Working with images, regions and fixations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tutorial2_ImageFeatures.html">3.2. Part 2: creating and importing image features</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.3. Part 3: GLMM Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-Creating-the-model-predictors-using-GridFix">3.3.1. 1. Creating the model predictors using GridFix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-Evaluating-the-model-using-R">3.3.2. 2. Evaluating the model using R</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#4.-Concluding-Remarks">3.3.3. 4. Concluding Remarks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">4. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">5. Module Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GridFix</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../tutorial.html">3. GridFix Tutorial</a> &raquo;</li>
+        
+      <li>3.3. Part 3: GLMM Analysis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/Tutorial3_GLMMPreprocessing.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-bold { font-weight: bold; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Part-3:-GLMM-Analysis">
+<h1>3.3. Part 3: GLMM Analysis<a class="headerlink" href="#Part-3:-GLMM-Analysis" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="1.-Creating-the-model-predictors-using-GridFix">
+<h2>3.3.1. 1. Creating the model predictors using GridFix<a class="headerlink" href="#1.-Creating-the-model-predictors-using-GridFix" title="Permalink to this headline">¶</a></h2>
+<p>In this part of the tutorial, we will use the grid and image features
+defined in the previous chapters to create a GLMM predictor matrix and
+output some model code for R. First, let&#8217;s reproduce the analysis from
+previous chapters and add some features that might influence each grid
+cell&#8217;s fixation probability:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">gridfix</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1"># Load images and define 8x6 grid from part 1</span>
+<span class="n">images</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;images/tutorial_images.csv&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;tutorial&#39;</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">GridRegionSet</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">images</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;testgrid&#39;</span><span class="p">)</span>
+
+<span class="c1"># Define some simple features from part 2</span>
+<span class="n">fLum</span> <span class="o">=</span> <span class="n">LuminanceFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span>
+<span class="n">fEdge</span> <span class="o">=</span> <span class="n">SobelEdgeFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">images</span><span class="p">)</span>
+<span class="n">fCent</span> <span class="o">=</span> <span class="n">CentralBiasFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">,</span> <span class="n">sig2</span><span class="o">=</span><span class="mf">0.23</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.45</span><span class="p">)</span>
+
+<span class="c1"># Load IKN98 feature maps and define a MapFeature</span>
+<span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;112&#39;</span><span class="p">,</span> <span class="s1">&#39;67&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;52&#39;</span><span class="p">,</span> <span class="s1">&#39;37&#39;</span><span class="p">,</span> <span class="s1">&#39;106&#39;</span><span class="p">,</span> <span class="s1">&#39;129&#39;</span><span class="p">,</span> <span class="s1">&#39;9&#39;</span><span class="p">,</span> <span class="s1">&#39;107&#39;</span><span class="p">,</span> <span class="s1">&#39;97&#39;</span><span class="p">,</span> <span class="s1">&#39;58&#39;</span><span class="p">,</span> <span class="s1">&#39;111&#39;</span><span class="p">,</span> <span class="s1">&#39;85&#39;</span><span class="p">,</span> <span class="s1">&#39;149&#39;</span><span class="p">,</span> <span class="s1">&#39;150&#39;</span><span class="p">]</span>
+<span class="n">maps</span> <span class="o">=</span> <span class="n">ImageSet</span><span class="p">(</span><span class="s1">&#39;maps&#39;</span><span class="p">,</span> <span class="n">imageids</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">mat_var</span><span class="o">=</span><span class="s1">&#39;IKN98&#39;</span><span class="p">)</span>
+<span class="n">fIKN</span> <span class="o">=</span> <span class="n">MapFeature</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">maps</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+
+<span class="c1"># Load fixation data</span>
+<span class="n">fix</span> <span class="o">=</span> <span class="n">Fixations</span><span class="p">(</span><span class="s1">&#39;tutorial_fixations.csv&#39;</span><span class="p">,</span> <span class="n">imageid</span><span class="o">=</span><span class="s1">&#39;image_id&#39;</span><span class="p">,</span> <span class="n">fixid</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_INDEX&#39;</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_X&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;CURRENT_FIX_Y&#39;</span><span class="p">,</span> <span class="n">imageset</span><span class="o">=</span><span class="n">images</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Now the actual GLMM preprocessing can be performed using a
+<em>FixationModel</em> object which combines fixation data, RegionSet and all
+features specified in the <em>features=</em> argument into a common predictor
+matrix, which can then be loaded into R. With a big dataset, this could
+take a while, but for this tutorial, updating the model should be a
+matter of a few seconds. Note that the <em>chunks=</em> argument specifies the
+names of columns over which data should not be aggregated, e.g.
+individual subjects, while the <em>features=</em> argument contains a Python
+list of the actual Feature objects defined above.</p>
+<p>In our example, this predictor matrix contains one line for each
+subject, image and grid cell, which will yield 8 x 15 x 48 = 5760
+individual data points to be entered into GLMM. We can print the
+resulting model object to verify this:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [45]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="n">model</span> <span class="o">=</span> <span class="n">FixationModel</span><span class="p">(</span><span class="n">fix</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;subject_number&#39;</span><span class="p">,</span> <span class="s1">&#39;image_id&#39;</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="n">fLum</span><span class="p">,</span> <span class="n">fCent</span><span class="p">],</span> <span class="n">dv_type</span><span class="o">=</span><span class="s1">&#39;fixated&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;gridfix.FixationModel, 5760 samples, DV=fixated, chunked by: [&#39;subject_number&#39;, &#39;image_id&#39;]&gt;
+Fixations:
+        &lt;gridfix.Fixations data set, 2556 samples, 15 images&gt;
+Images:
+        &lt;gridfix.ImageSet &#34;tutorial&#34;, 15 images, size=(800, 600), normalized&gt;
+Regions:
+        &lt;gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB&gt;
+
+Features:
+        fCentr  CentralBiasFeature
+        fLumin  LuminanceFeature
+
+</pre></div></div>
+</div>
+<p>The resulting predictor matrix now contains one row per combination of
+image and region (and possible other variables used for chunking in the
+model specification, such as the subject id). Within each row, the
+column <em>dvFix</em> indicates the fixation state of each cell, i.e., whether
+it was fixated (1) or not (0), while the remaining columns contain the
+feature values for the corresponding regions - here, mean cell luminance
+(fLumin) and distance from image center following an anisotropic
+Gaussian CB model (fCentr).</p>
+<p>The predictor matrix can be accessed as a DataFrame using the
+<em>predictors</em> attribute of the generated model object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [46]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predictors</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+    subject_number image_id  region  dvFix    fCentr    fLumin
+0            201.0      106     1.0    0.0  0.971265  0.484337
+1            201.0      106     2.0    0.0  0.935023  0.484956
+2            201.0      106     3.0    0.0  0.888111  0.567180
+3            201.0      106     4.0    0.0  0.853275  0.657081
+4            201.0      106     5.0    0.0  0.853474  0.792208
+5            201.0      106     6.0    0.0  0.888567  0.800865
+6            201.0      106     7.0    0.0  0.935464  0.779572
+7            201.0      106     8.0    0.0  0.971537  0.681514
+8            201.0      106     9.0    0.0  0.903758  0.489519
+9            201.0      106    10.0    1.0  0.782377  0.395110
+10           201.0      106    11.0    0.0  0.625257  0.555128
+11           201.0      106    12.0    0.0  0.508580  0.538794
+12           201.0      106    13.0    0.0  0.509249  0.882058
+13           201.0      106    14.0    0.0  0.626785  0.983519
+14           201.0      106    15.0    0.0  0.783854  0.958491
+15           201.0      106    16.0    0.0  0.904671  0.880573
+16           201.0      106    17.0    1.0  0.824134  0.293749
+17           201.0      106    18.0    0.0  0.602332  0.349848
+18           201.0      106    19.0    1.0  0.315222  0.542880
+19           201.0      106    20.0    1.0  0.102016  0.561462
+20           201.0      106    21.0    0.0  0.103238  0.574169
+21           201.0      106    22.0    1.0  0.318015  0.756059
+22           201.0      106    23.0    1.0  0.605031  0.922472
+23           201.0      106    24.0    0.0  0.825803  0.944817
+24           201.0      106    25.0    1.0  0.824666  0.224936
+25           201.0      106    26.0    0.0  0.603535  0.431133
+26           201.0      106    27.0    1.0  0.317293  0.583595
+27           201.0      106    28.0    1.0  0.104732  0.436877
+28           201.0      106    29.0    1.0  0.105951  0.428582
+29           201.0      106    30.0    0.0  0.320077  0.625334
+..             ...      ...     ...    ...       ...       ...
+18           209.0       97    19.0    1.0  0.315222  0.507149
+19           209.0       97    20.0    1.0  0.102016  0.517995
+20           209.0       97    21.0    1.0  0.103238  0.446762
+21           209.0       97    22.0    1.0  0.318015  0.482895
+22           209.0       97    23.0    1.0  0.605031  0.414101
+23           209.0       97    24.0    0.0  0.825803  0.408590
+24           209.0       97    25.0    0.0  0.824666  0.397340
+25           209.0       97    26.0    1.0  0.603535  0.358494
+26           209.0       97    27.0    0.0  0.317293  0.398970
+27           209.0       97    28.0    0.0  0.104732  0.451527
+28           209.0       97    29.0    0.0  0.105951  0.602446
+29           209.0       97    30.0    0.0  0.320077  0.470265
+30           209.0       97    31.0    0.0  0.606226  0.427404
+31           209.0       97    32.0    1.0  0.826330  0.343827
+32           209.0       97    33.0    0.0  0.904629  0.360975
+33           209.0       97    34.0    0.0  0.784346  0.354982
+34           209.0       97    35.0    0.0  0.628647  0.551488
+35           209.0       97    36.0    0.0  0.513026  0.635785
+36           209.0       97    37.0    0.0  0.513689  0.661605
+37           209.0       97    38.0    0.0  0.630161  0.611297
+38           209.0       97    39.0    0.0  0.785810  0.546509
+39           209.0       97    40.0    1.0  0.905534  0.480870
+40           209.0       97    41.0    0.0  0.971697  0.359889
+41           209.0       97    42.0    0.0  0.936000  0.428950
+42           209.0       97    43.0    0.0  0.889793  0.546199
+43           209.0       97    44.0    0.0  0.855480  0.628933
+44           209.0       97    45.0    0.0  0.855677  0.662128
+45           209.0       97    46.0    0.0  0.890243  0.647953
+46           209.0       97    47.0    0.0  0.936435  0.627720
+47           209.0       97    48.0    0.0  0.971965  0.506024
+
+[5760 rows x 6 columns]
+</pre></div></div>
+</div>
+<p>To facilitate analysis of the generated predictor matrix in R, GridFix
+also generates R source code that contains the necessary commands to
+import the generated data file, define factors, standardize predictors
+and set up a model formula. This can serve as a starting point for
+analysis but should be adapted to the individual factor structure of
+each hypothesis and dataset - as a reminder, the actual call to <em>glmer</em>
+is commented out.</p>
+<p>The <em>model.save()</em> function saves both the predictor matrix and the R
+code to files to be read into R. Note that the file name argument should
+be the <em>base name</em> of generated files, e.g., model.save(&#8220;tutorial&#8221;) will
+generate tutorial.csv and tutorial.R.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [49]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Print the source code here as an example</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">r_source</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;tutorial&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+# GridFix GLMM R source, generated on 04.05.17, 14:45:09
+# input file:   gridfix.csv
+# RegionSet:    &lt;gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB&gt;
+# DV type:      fixated
+
+library(lme4)
+
+data  &lt;- read.table(&#34;gridfix.csv&#34;, header=T, sep=&#34;\t&#34;, row.names=NULL)
+
+# Define R factors for all chunking variables and group dummy codes
+data$subject_number &lt;- as.factor(data$subject_number)
+data$image_id &lt;- as.factor(data$image_id)
+
+# Center and scale predictors
+data$fCentr_C &lt;- scale(data$fCentr, center=TRUE, scale=TRUE)
+data$fLumin_C &lt;- scale(data$fLumin, center=TRUE, scale=TRUE)
+
+# NOTE: this source code can only serve as a scaffolding for your own analysis!
+# You MUST adapt the GLMM model formula below to your model, then uncomment the corresponding line!
+#model &lt;- glmer(dvFix ~ 1 + fCentr_C  + fLumin_C  + (1 | image_id), control=glmerControl(optimizer=&#34;bobyqa&#34;), data=data, family=binomial)
+
+save(file=&#34;gridfix_GLMM.Rdata&#34;, list = c(&#34;model&#34;))
+
+print(summary(model))
+
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="2.-Evaluating-the-model-using-R">
+<h2>3.3.2. 2. Evaluating the model using R<a class="headerlink" href="#2.-Evaluating-the-model-using-R" title="Permalink to this headline">¶</a></h2>
+<p><strong>Note: The following cells will only work interactively if you have a
+working R environment and the rpy2 Python module installed. The next
+cell will set up the %%R magic code to run R code within this notebook</strong></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [50]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3"><div class="highlight"><pre>
+<span></span><span class="c1"># Initialize R environment for Jupyter notebook using rpy2</span>
+<span class="o">%</span><span class="k">load_ext</span> rpy2.ipython
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The rpy2.ipython extension is already loaded. To reload it, use:
+  %reload_ext rpy2.ipython
+</pre></div></div>
+</div>
+<p>The Python code cell above saved the tutorial model (central bias and
+luminance) to &#8220;tutorial.csv&#8221;, which we will now load into R. The
+following code example fits a model containing central bias and mean
+cell luminance as fixed factors and includes random intercepts (but not
+slopes) for individual images. The resulting R model object can then be
+manipulated using R commands as usual and/or saved to an Rdata file.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none"><div class="highlight"><pre>
+<span></span>In [51]:
+</pre></div>
+</div>
+<div class="input_area highlight-r"><div class="highlight"><pre>
+<span></span><span class="o">%%</span>R
+<span class="c1"># GridFix GLMM R source, generated on 04.05.17, 14:22:46</span>
+<span class="c1"># input file:       gridfix.csv</span>
+<span class="c1"># RegionSet:        &lt;gridfix.GridRegionSet (testgrid), size=(800, 600), 8x6 grid, 48 cells, memory=22500.0 kB&gt;</span>
+<span class="c1"># DV type:  fixated</span>
+
+<span class="kn">library</span><span class="p">(</span>lme4<span class="p">)</span>
+
+data  <span class="o">&lt;-</span> read.table<span class="p">(</span><span class="s">&quot;tutorial.csv&quot;</span><span class="p">,</span> header<span class="o">=</span><span class="bp">T</span><span class="p">,</span> sep<span class="o">=</span><span class="s">&quot;\t&quot;</span><span class="p">,</span> row.names<span class="o">=</span><span class="kc">NULL</span><span class="p">)</span>
+
+<span class="c1"># Define R factors for all chunking variables and group dummy codes</span>
+data<span class="o">$</span>subject_number <span class="o">&lt;-</span> <span class="kp">as.factor</span><span class="p">(</span>data<span class="o">$</span>subject_number<span class="p">)</span>
+data<span class="o">$</span>image_id <span class="o">&lt;-</span> <span class="kp">as.factor</span><span class="p">(</span>data<span class="o">$</span>image_id<span class="p">)</span>
+
+<span class="c1"># Center and scale predictors</span>
+data<span class="o">$</span>fCentr_C <span class="o">&lt;-</span> <span class="kp">scale</span><span class="p">(</span>data<span class="o">$</span>fCentr<span class="p">,</span> center<span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span> scale<span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+data<span class="o">$</span>fLumin_C <span class="o">&lt;-</span> <span class="kp">scale</span><span class="p">(</span>data<span class="o">$</span>fLumin<span class="p">,</span> center<span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span> scale<span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="c1"># NOTE: this source code can only serve as a scaffolding for your own analysis!</span>
+<span class="c1"># You MUST adapt the GLMM model formula below to your model, then uncomment the corresponding line!</span>
+model <span class="o">&lt;-</span> glmer<span class="p">(</span>dvFix <span class="o">~</span> <span class="m">1</span> <span class="o">+</span> fCentr_C  <span class="o">+</span> fLumin_C  <span class="o">+</span> <span class="p">(</span><span class="m">1</span> <span class="o">|</span> image_id<span class="p">),</span> control<span class="o">=</span>glmerControl<span class="p">(</span>optimizer<span class="o">=</span><span class="s">&quot;bobyqa&quot;</span><span class="p">),</span> data<span class="o">=</span>data<span class="p">,</span> family<span class="o">=</span>binomial<span class="p">)</span>
+
+<span class="kp">print</span><span class="p">(</span><span class="kp">summary</span><span class="p">(</span>model<span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area highlight-none"><div class="highlight"><pre>
+<span></span>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: dvFix ~ 1 + fCentr_C + fLumin_C + (1 | image_id)
+   Data: data
+Control: glmerControl(optimizer = &quot;bobyqa&quot;)
+
+     AIC      BIC   logLik deviance df.resid
+  6318.4   6345.0  -3155.2   6310.4     5756
+
+Scaled residuals:
+    Min      1Q  Median      3Q     Max
+-1.3908 -0.5507 -0.4629  0.7890  2.5595
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ image_id (Intercept) 0.007605 0.0872
+Number of obs: 5760, groups:  image_id, 15
+
+Fixed effects:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -1.01691    0.03874 -26.250   &lt;2e-16 ***
+fCentr_C    -0.65888    0.02978 -22.126   &lt;2e-16 ***
+fLumin_C    -0.07915    0.03374  -2.346    0.019 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+         (Intr) fCnt_C
+fCentr_C  0.157
+fLumin_C  0.027 -0.090
+
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="4.-Concluding-Remarks">
+<h2>3.3.3. 4. Concluding Remarks<a class="headerlink" href="#4.-Concluding-Remarks" title="Permalink to this headline">¶</a></h2>
+<p>This concludes the GridFix tutorial - we hope that it can prove helpful
+in setting up a preprocessing script and GLMM-based fixation analysis.
+For more details of supported image features and other attributes of the
+GridFix toolbox, you can use the navigation bar on the left to browse
+the module documentation or look at some example scripts for common
+analyses. Thank you for your interest in this method!</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../examples.html" class="btn btn-neutral float-right" title="4. Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Tutorial2_ImageFeatures.html" class="btn btn-neutral" title="3.2. Part 2: creating and importing image features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Immo Schuetz.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

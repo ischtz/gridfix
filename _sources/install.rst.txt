@@ -1,0 +1,41 @@
+Installation
+============
+
+
+Prerequisites
+-------------
+
+GridFix requires Python 3. The following packages need to be installed: 
+
+- numpy
+
+- scipy
+
+- matplotlin
+
+- pandas
+
+- PIL or Pillow (Python image library)
+
+
+If you need to install a Python environment for the first time, we recommend the Anaconda distribution which includes all of the listed prerequisites by default, is available for all major platforms (Windows, Mac, Linux) and can be downloaded at https://www.continuum.io/downloads. 
+
+
+Toolbox Installation
+--------------------
+
+To install GridFix, clone this repository using git or download a ZIP file using the "Clone or download" button, then run the following from the gridfix directory:
+
+``python3 setup.py install``
+
+or, in case you want to only install for your user or receive an error regarding permissions:
+
+``python3 setup.py install --user``
+
+
+
+GridFix was installed correctly if you can then execute 
+
+``from gridfix import *``
+
+in an interactive Python3 session without errors. 

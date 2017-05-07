@@ -1,0 +1,28 @@
+gridfix package
+===============
+
+Main Classes (gridfix.model)
+----------------------------
+
+.. automodule:: gridfix.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Region Sets (gridfix.regionset)
+-------------------------------
+
+.. automodule:: gridfix.regionset
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Image Features (gridfix.features)
+---------------------------------
+
+.. automodule:: gridfix.features
+    :members:
+    :undoc-members:
+    :show-inheritance:
