@@ -863,16 +863,16 @@ class FixationModel(object):
         src += '\n'
 
         # Predictor file
-        src += 'data  <- read.table("{:s}", header=T, sep="\\t", row.names=NULL)\n\n'.format(datafile)
+        src += 'gridfixdata  <- read.table("{:s}", header=T, sep="\\t", row.names=NULL)\n\n'.format(datafile)
 
         # Factors
         if comments:
             src += '# Define R factors for all chunking variables and group dummy codes\n'
         for chunk in self.chunks:
-            src += 'data${:s} <- as.factor(data${:s})\n'.format(chunk, chunk)
+            src += 'gridfixdata${:s} <- as.factor(gridfixdata${:s})\n'.format(chunk, chunk)
         if len(self.comp_features) > 0:
             for cf in self.comp_features.keys():
-                src += 'data${:s} <- as.factor(data${:s})\n'.format(cf, cf)
+                src += 'gridfixdata${:s} <- as.factor(gridfixdata${:s})\n'.format(cf, cf)
         src += '\n'
 
         # Center and scale
@@ -887,7 +887,7 @@ class FixationModel(object):
                 if comments:
                     src += '# Center and scale predictors\n'
                 for f in self.features.keys():
-                    src += 'data${:s}_C <- scale(data${:s}, center={:s}, scale={:s})\n'.format(f, f, r_cent, r_scal)
+                    src += 'gridfixdata${:s}_C <- scale(gridfixdata${:s}, center={:s}, scale={:s})\n'.format(f, f, r_cent, r_scal)
                 src += '\n'
 
         # GLMM model formula
@@ -935,7 +935,7 @@ class FixationModel(object):
             src += '# NOTE: this source code can only serve as a scaffolding for your own analysis!\n'
             src += '# You MUST adapt the GLMM model formula below to your model, then uncomment the corresponding line!\n'
             src += '#'
-        src += 'model <- glmer({:s}, data=data{:s}, family={:s})\n\n'.format(formula, opt_call, model_fam)
+        src += 'model <- glmer({:s}, data=gridfixdata{:s}, family={:s})\n\n'.format(formula, opt_call, model_fam)
 
         out_f, ext = os.path.splitext(datafile)
         src += 'save(file="{}_GLMM.Rdata", list = c("model"))\n\n'.format(out_f)
