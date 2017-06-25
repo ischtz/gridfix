@@ -946,28 +946,30 @@ class FixationModel(object):
     def _process_chunk(self, chunk_vals, data, pred_columns, group_levels):
         """ Process a single data chunk. """
         if data is not None:
-            tmpdf = DataFrame(columns=pred_columns, index=range(len(self.regionset)))
+            sel_labels = dict(zip(self.chunks, chunk_vals))
+            imageid = str(sel_labels[self._fix._imageid])
+            tmpdf = DataFrame(columns=pred_columns, index=range(len(self.regionset[imageid])))
 
             # groupby returns a single string if only one chunk columns is selected
             if type(chunk_vals) != tuple:
                 chunk_vals = (chunk_vals,)
 
             # Fixations
-            sel_labels = dict(zip(self.chunks, chunk_vals))
             subset = self._fix.select_fix(sel_labels)
-            imageid = sel_labels[self._fix._imageid]
 
             # Chunk and region values
             for col in self.chunks:
                 tmpdf[col] = data[col].iloc[0]
 
-            tmpdf['region'] = range(1, len(self.regionset) + 1)
+            # Region ID and numbering
+            tmpdf.regionid = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionid, dtype=str)
+            tmpdf.regionno = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionno, dtype=int)
 
             # Fixated and non-fixated regions
             if self.dv_type == 'fixated':
-                tmpdf['dvFix'] = self.regionset.fixated(subset, exclude_first=self.exclude_first_fix)
+                tmpdf['dvFix'] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix)
             elif self.dv_type == 'count':
-                tmpdf['dvFix'] = self.regionset.fixated(subset, exclude_first=self.exclude_first_fix, count=True)
+                tmpdf['dvFix'] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix, count=True)
 
             # Simple per-image features
             for feat_col, feat in self.features.items():
@@ -992,7 +994,7 @@ class FixationModel(object):
         ts = time.time()
 
         # Output DF columns
-        pred_columns = self.chunks + ['region', 'dvFix']
+        pred_columns = self.chunks + ['regionid', 'regionno', 'dvFix']
         pred_columns += list(self.features.keys())
         for cf in self.comp_features.keys():
             pred_columns += [cf, '{:s}_val'.format(cf)]

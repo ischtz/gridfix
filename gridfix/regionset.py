@@ -134,7 +134,7 @@ class RegionSet(object):
 
     def _region_metadata(self):
         """ Return DataFrame of region metadata """
-        info_cols = ['imageid', 'region', 'left', 'top', 'right', 'bottom', 'width', 'height', 'area', 'imgfrac']
+        info_cols = ['imageid', 'regionid', 'regionno', 'left', 'top', 'right', 'bottom', 'width', 'height', 'area', 'imgfrac']
         info = []
 
         if self.is_global:
@@ -153,7 +153,7 @@ class RegionSet(object):
 
                 area = reg[i][reg[i] > 0].sum()
                 imgfrac = round(area / (reg[i].shape[0] * reg[i].shape[1]), 4)
-                rmeta = [imid, l, left, top, right, bottom, right-left+1, bottom-top+1, area, imgfrac]
+                rmeta = [imid, l, i+1, left, top, right, bottom, right-left+1, bottom-top+1, area, imgfrac]
                 info.append(rmeta)
 
         return DataFrame(info, columns=info_cols)

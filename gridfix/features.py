@@ -253,7 +253,7 @@ class CentralBiasFeature(Feature):
 
         self.measure = measure
         self._map = None
-        self._values = None
+        self._values = {}
 
         self.sig2 = sig2
         self.nu = nu
@@ -316,7 +316,7 @@ class CentralBiasFeature(Feature):
         Returns:
             1D numpy.ndarray of feature values, same length as regionset
         """
-        if self._values is None:
+        if imageid not in self._values.keys():
             fv = []
             
             img_trans = self.transform()
@@ -325,12 +325,12 @@ class CentralBiasFeature(Feature):
                 f = self.combine(img_trans, np.asarray(region, dtype=bool))
                 fv.append(f)
 
-            self._values = np.array(fv)
+            self._values[imageid] = np.array(fv)
 
         if normalize:
-            return (self._values - self._values.min()) / (self._values.max() - self._values.min())
+            return (self._values[imageid] - self._values[imageid].min()) / (self._values[imageid].max() - self._values[imageid].min())
         else:
-            return self._values
+            return self._values[imageid]
 
 
     def __repr__(self):
