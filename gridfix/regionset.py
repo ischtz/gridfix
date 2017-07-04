@@ -439,7 +439,7 @@ class RegionSet(object):
                     ty = region.top - 5
                 else:
                     ty = region.bottom + 20
-                ax1.text(tx, ty, region.region, horizontalalignment=ha)
+                ax1.text(tx, ty, region.regionid, horizontalalignment=ha)
 
         if image_only:
             ax1.axis('off')
@@ -527,7 +527,7 @@ class RegionSet(object):
                 out *= 255.0
 
             rimg = Image.fromarray(np.array(out, np.uint8))
-            rimg.save(imstr.format(imageid, apply_labels[idx], image_format), image_format)
+            rimg.save(imstr.format(str(imageid), str(apply_labels[idx]), image_format), image_format)
 
 
     def export_patches_from_set(self, imageset, crop=True, image_format='png', rescale=False):
