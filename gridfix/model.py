@@ -735,7 +735,7 @@ class FixationModel(object):
         Args:
             fixations (Fixations): fixation data to use as model DV (column 'fixation')
             regionset (RegionSet): a RegionSet object defining length of all features
-            dv_type (str): type of DV to generate:
+            dv_type (str): type of DV to generate, or list of multiple options:
                 'fixated': binary coding of fixated (1) and unfixated (0) regions
                 'count': absolute fixation count for each region
             features (list): list of Feature objects to add (use add_comparison for feature groups)
@@ -754,8 +754,11 @@ class FixationModel(object):
         self.comp_features = {}
         self.exclude_first_fix = exclude_first_fix
 
-        if dv_type not in ['fixated', 'count']:
-            raise ValueError('Error: unknown DV type specified: "{:s}"!'.format(dv_type))
+        if type(dv_type) != list:
+            dv_type = [dv_type,]
+        for dvt in dv_type:
+            if dvt not in ['fixated', 'count']:
+                raise ValueError('Error: unknown DV type specified: "{:s}"!'.format(dvt))
         self.dv_type = dv_type
 
         # Make sure imageid is always a chunking variable and all chunk vars exist
@@ -854,7 +857,7 @@ class FixationModel(object):
             src =  '# GridFix GLMM R source, generated on {:s}\n'.format(d)
             src += '# input file:\t{:s}\n'.format(datafile)
             src += '# RegionSet:\t{:s}\n'.format(str(self.regionset))
-            src += '# DV type:\t{:s}\n'.format(self.dv_type)
+            src += '# DV type(s):\t{:s}\n'.format(str(self.dv_type))
             src += '\n'
 
         # Libraries
@@ -890,8 +893,8 @@ class FixationModel(object):
                     src += 'gridfixdata${:s}_C <- scale(gridfixdata${:s}, center={:s}, scale={:s})\n'.format(f, f, r_cent, r_scal)
                 src += '\n'
 
-        # GLMM model formula
-        formula = 'dvFix ~ 1'
+        # GLMM model formula (DV is set later)
+        formula = '{:s} ~ 1'
 
         if fixed is None:
             # Best guess: all simple features should be fixed factors!
@@ -924,21 +927,29 @@ class FixationModel(object):
         if optimizer is not None:
             opt_call = ', control=glmerControl(optimizer="{:s}")'.format(optimizer)
 
-        # Model family based on DV type
-        if self.dv_type == 'fixated':
-            model_fam = 'binomial'
-        elif self.dv_type == 'count':
-            model_fam = 'poisson'
-
-        # GLMM model call
+        # GLMM model call(s) - one per requested DV
         if comments:
             src += '# NOTE: this source code can only serve as a scaffolding for your own analysis!\n'
             src += '# You MUST adapt the GLMM model formula below to your model, then uncomment the corresponding line!\n'
-            src += '#'
-        src += 'model <- glmer({:s}, data=gridfixdata{:s}, family={:s})\n\n'.format(formula, opt_call, model_fam)
+
+        models = []
+        for current_dv in self.dv_type:
+            if current_dv == 'fixated':
+                model_fam = 'binomial'
+                model_dv = 'dvFix'
+            elif current_dv == 'count':
+                model_fam = 'poisson'
+                model_dv = 'dvCount'
+            models.append('model.{:s}'.format(current_dv))
+
+            if comments:
+                src += '# DV: {:s}\n#'.format(current_dv)
+
+            src += 'model.{:s} <- glmer({:s}, data=gridfixdata{:s}, family={:s})\n\n'.format(current_dv, formula.format(model_dv), opt_call, model_fam)
 
         out_f, ext = os.path.splitext(datafile)
-        src += 'save(file="{}_GLMM.Rdata", list = c("model"))\n\n'.format(out_f)
+        r_objlist = ','.join(['"{:s}"'.format(a) for a in models])
+        src += 'save(file="{}_GLMM.Rdata", list = c({:s}))\n\n'.format(out_f, r_objlist)
         src += 'print(summary(model))\n'
         return src
 
@@ -970,10 +981,10 @@ class FixationModel(object):
                 tmpdf.regionno = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionno, dtype=int)
 
             # Fixated and non-fixated regions
-            if self.dv_type == 'fixated':
+            if 'fixated' in self.dv_type:
                 tmpdf['dvFix'] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix)
-            elif self.dv_type == 'count':
-                tmpdf['dvFix'] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix, count=True)
+            if 'count' in self.dv_type:
+                tmpdf['dvCount'] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix, count=True)
 
             # Simple per-image features
             for feat_col, feat in self.features.items():
