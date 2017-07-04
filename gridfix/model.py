@@ -962,8 +962,12 @@ class FixationModel(object):
                 tmpdf[col] = data[col].iloc[0]
 
             # Region ID and numbering
-            tmpdf.regionid = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionid, dtype=str)
-            tmpdf.regionno = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionno, dtype=int)
+            if self.regionset.is_global:
+                tmpdf.regionid = np.array(self.regionset.info[self.regionset.info.imageid == '*'].regionid, dtype=str)
+                tmpdf.regionno = np.array(self.regionset.info[self.regionset.info.imageid == '*'].regionno, dtype=int)
+            else:
+                tmpdf.regionid = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionid, dtype=str)
+                tmpdf.regionno = np.array(self.regionset.info[self.regionset.info.imageid == imageid].regionno, dtype=int)
 
             # Fixated and non-fixated regions
             if self.dv_type == 'fixated':
