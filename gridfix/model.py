@@ -833,7 +833,7 @@ class FixationModel(object):
 
 
     def r_source(self, datafile='gridfix.csv', comments=True, scale=True, center=True, 
-                 optimizer=None, fixed=None, random=None, random_intercepts=False):
+                 optimizer=None, fixed=None, random=None, random_slopes=False):
         """ Generate R source code from current feature settings.
 
         Args:
@@ -844,7 +844,7 @@ class FixationModel(object):
             optimizer (str): optional optimizer to pass to R glmer()
             fixed (list): list of column names (strings) to add as fixed factors
             random (list): list of column names (strings) to add as random factors
-            random_intercepts (boolean): also add random intercepts
+            random_slopes (boolean): also add random slopes to generated R code
 
         Returns:
             R source code as string
@@ -917,7 +917,7 @@ class FixationModel(object):
         
         if len(fixed) > 0:
             for r in random:
-                if random_intercepts:
+                if random_slopes:
                     formula += ' + (1{:s} | {:s})'.format(fixed_vars, r)
                 else:
                     formula += ' + (1 | {:s})'.format(r)
@@ -1087,7 +1087,7 @@ class FixationModel(object):
 
 
     def save(self, basename, sep='\t', pred=True, pred_pickle=False, src=True, src_comments=True, precision=10,
-             optimizer=None, fixed=None, random=None, random_intercepts=False):
+             optimizer=None, fixed=None, random=None, random_slopes=False):
         """ Saves the predictor matrix to a CSV text file.
 
         Args:
@@ -1101,7 +1101,7 @@ class FixationModel(object):
             optimizer (str): optional optimizer to pass to R glmer()
             fixed (list): list of column names (strings) to add as fixed factors
             random (list): list of column names (strings) to add as random factors
-            random_intercepts (boolean): also add random intercepts
+            random_slopes (boolean): also add random slopes to generated R code
 
         """
         if not self._consistent:
@@ -1118,7 +1118,7 @@ class FixationModel(object):
         if src:
             f_src = '{:s}.R'.format(basename)
             src = self.r_source(comments=src_comments, datafile=f_pred, optimizer=optimizer,
-                                fixed=fixed, random=random, random_intercepts=random_intercepts)
+                                fixed=fixed, random=random, random_slopes=random_slopes)
             with open(f_src, 'w') as sf:
                 sf.write(src)
 
