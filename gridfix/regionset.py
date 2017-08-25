@@ -590,12 +590,14 @@ class RegionSet(object):
                     vis[idx] = num_fix
 
                 if exclude_first:
-                    is_first = roi[first_fix[fixations._ypx], first_fix[fixations._xpx]]
-                    if isinstance(is_first, np.ndarray) and any(is_first):
-                        vis[idx] = np.nan
-                    elif is_first:
-                        vis[idx] = np.nan
-
+                    try:
+                        is_first = roi[first_fix[fixations._ypx], first_fix[fixations._xpx]]
+                        if isinstance(is_first, np.ndarray) and any(is_first):
+                            vis[idx] = np.nan
+                        elif is_first:
+                            vis[idx] = np.nan
+                    except IndexError:
+                        pass # first fixation is out of bounds for image!
         if not count:
             vis[vis >= 1.0] = 1.0
             vis[vis < 1.0] = 0.0
