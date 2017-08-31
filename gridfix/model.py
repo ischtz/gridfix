@@ -429,7 +429,8 @@ class Fixations(object):
     array convention.
 
     Attributes:
-        data (DataFrame): DataFrame of raw fixation data 
+        data (DataFrame): DataFrame of raw fixation data
+        has_times (boolean): True if fixation times have been loaded
         imageids (list): all unique image IDs represented in the dataset
         imageset (ImageSet): if present, the associated ImageSet
         input_file (str): file name of fixation data file
@@ -441,7 +442,8 @@ class Fixations(object):
     """
 
     def __init__(self, data, imageset=None, offset=(0, 0), imageid='imageid', 
-                 fixid='fixid', x='x', y='y', numericid=False):
+                 fixid='fixid', x='x', y='y', fixstart=None, fixend=None,
+                 numericid=False):
         """ Create new Fixations dataset and calculate defaults.
 
         Args:
@@ -453,6 +455,8 @@ class Fixations(object):
             fixid (str): name of data file column with unique fixation ID / index
             x (str): name of data file column for horizontal fixation locations
             y (str): name of data file column for vertical fixation locations
+            fixstart (str): name of data file column containing fixation start time
+            fixend (str): name of data file column containing fixation end time
             numericid (boolean): if True, try to force parsing imageid as numeric
         """
         self.data = DataFrame()
@@ -477,6 +481,9 @@ class Fixations(object):
         self._y = y
         self._xpx = self._x + '_PX'
         self._ypx = self._y + '_PX'
+        self._fixstart = fixstart
+        self._fixend = fixend
+        self._fixdur = '__FIXDUR'
 
         # Verify that all required columns are present
         cols = [imageid, fixid, x, y]
@@ -499,6 +506,20 @@ class Fixations(object):
         self.num_samples = self.shape[0]
         self.num_vars = self.shape[1]
         self.variables = list(self.data.columns.values)
+
+        # Fixation timing columns (optional, default: not specified)
+        self.has_times = False
+        #if fixstart is None and fixend is not None
+        if fixstart is not None and fixend is not None:
+            if fixstart not in self.data.columns.values:
+                raise ValueError('Unknown column specified for fixation start time: "{:s}"'.format(fixstart))
+            if fixend not in self.data.columns.values:
+                raise ValueError('Unknown column specified for fixation end time: "{:s}"'.format(fixend))
+            self.has_times = True
+            self.data[self._fixdur] = self.data[self._fixend] - self.data[self._fixstart]
+        else:
+            if fixstart is None or fixend is None:
+                raise ValueError('Optional timing columns (fixstart, fixend) must be specified together!')
 
         # If ImageSet provided, check if all images are present
         self.imageset = None
@@ -586,12 +607,13 @@ class Fixations(object):
                     selection = selection[selection[col].isin(target)]
 
         result = Fixations(selection.copy(), imageid=self._imageid, fixid=self._fixid,
-                           x=self._x, y=self._y, imageset=self.imageset)
+                           x=self._x, y=self._y, imageset=self.imageset,
+                           fixstart=self._fixstart, fixend=self._fixend)
         return result
 
 
     def plot(self, imageid=None, select={}, on_image=True, oob=False,
-             plotformat='wo', image_only=False, ax=None):
+             plotformat='wo', durations=False, image_only=False, ax=None):
         """ Plot fixations for selected imageid, either alone or on image
 
         Args:
@@ -600,6 +622,7 @@ class Fixations(object):
             image (bool): if True, superimpose fixations onto image (if ImageSet present)
             oob (bool): if True, include out-of-bounds fixations when plotting
             plotformat (str): format string for plt.pyplot.plot(), default: white circles
+            durations (bool): if True, plot duration of each fixation next to marker
             image_only (boolean): if True, return only image content without labels
             ax (Axes): axes object to draw to, to include result in other figure
 
@@ -628,6 +651,15 @@ class Fixations(object):
 
         if oob:
             ax1.plot(plotfix.data[self._xpx], plotfix.data[self._ypx], plotformat)
+            if durations:
+                for r in plotfix.data.iterrows():
+                    x = r[1][self._xpx]
+                    if r[1][self._ypx] > 15:
+                        y = r[1][self._ypx] - 15
+                    else:
+                        y = r[1][self._ypx] + 5
+                    d = r[1][self._fixdur]
+                    ax1.text(x, y, str(d), horizontalalignment='center')
 
         else:
             try:
@@ -640,6 +672,16 @@ class Fixations(object):
                                    (plotfix.data[self._ypx] >= 0) &
                                    (plotfix.data[self._ypx] < size[1])]
                 ax1.plot(fix[self._xpx], fix[self._ypx], plotformat)
+                if durations:
+                    for r in fix.iterrows():
+                        x = r[1][self._xpx]
+                        if r[1][self._ypx] > 15:
+                            y = r[1][self._ypx] - 15
+                        else:
+                            y = r[1][self._ypx] + 5
+                        d = r[1][self._fixdur]
+                        ax1.text(x, y, str(d), horizontalalignment='center')
+
                 ax1.set_xlim((0, size[0]))
                 ax1.set_ylim((0,size[1]))
                 ax1.invert_yaxis()
@@ -713,6 +755,36 @@ class Fixations(object):
         for pos in fixloc:
             fixcount[pos[0], pos[1]] += 1
         return fixcount
+
+
+
+    def dur_map(self, imageid=None, size=None):
+        """ Map of total fixation durations for each image pixel
+
+        Args:
+            imageid (str): optional image ID to create map for one image only
+            size (tuple): image dimensions, specified as (width, height).
+
+        Returns:
+            2d ndarray of fixation durations at each pixel
+        """
+        if imageid is not None:
+            mapfix = self.select_fix({self._imageid: imageid})
+        else:
+            mapfix = self
+
+        if size is None:
+            if self.imageset is not None:
+                size = self.imageset.size
+            else:
+                raise ValueError('Image size or attached ImageSet are necessary for location mapping!')
+
+        durmap = np.zeros((size[1], size[0]), dtype=float)
+        fix = mapfix.data[(self.data[self._xpx] >= 0) & (self.data[self._xpx] < size[0]) &
+                  (self.data[self._ypx] >= 0) & (self.data[self._ypx] < size[1])]
+        for r in fix.iterrows():
+            durmap[r[1][self._ypx], r[1][self._xpx]] += r[1][self._fixdur]
+        return durmap
 
 
 
