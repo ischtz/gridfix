@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 
 from PIL import Image
 from pandas import DataFrame, read_table
+from pandas import __version__ as pandas_version
+from distutils.version import LooseVersion
 
 from scipy.io import whosmat, loadmat
 
@@ -1108,8 +1110,13 @@ class FixationModel(object):
             self.update()
 
         if pred:
-            f_pred = '{:s}.csv'.format(basename)
-            self.predictors.to_csv(f_pred, sep, index=False, float_format='%.{:d}f'.format(precision))
+            if LooseVersion(pandas_version) >= LooseVersion('0.17.1'):
+                # compression supported from 0.17.1
+                f_pred = '{:s}.csv.gz'.format(basename)
+                self.predictors.to_csv(f_pred, sep, index=False, float_format='%.{:d}f'.format(precision), compression='gzip')
+            else:
+                f_pred = '{:s}.csv'.format(basename)
+                self.predictors.to_csv(f_pred, sep, index=False, float_format='%.{:d}f'.format(precision))
 
         if pred_pickle:
             f_pred = '{:s}.pkl'.format(basename)
