@@ -907,10 +907,16 @@ class FixationModel(object):
 
         fixed_vars = ''
         for f in fixed:
+            try:
+                # likely a feature object
+                fl = f.label
+            except AttributeError:
+                # text label specified
+                fl = f
             if scale or center:
-                fixed_vars += ' + {:s}_C '.format(f)
+                fixed_vars += ' + {:s}_C '.format(fl)
             else:
-                fixed_vars += ' + {:s} '.format(f)
+                fixed_vars += ' + {:s} '.format(fl)
         formula += fixed_vars
 
         if random is None:
@@ -919,10 +925,15 @@ class FixationModel(object):
         
         if len(fixed) > 0:
             for r in random:
+                try:
+                # likely a feature object
+                    rl = r.label
+                except AttributeError:
+                    rl = r
                 if random_slopes:
-                    formula += ' + (1{:s} | {:s})'.format(fixed_vars, r)
+                    formula += ' + (1{:s} | {:s})'.format(fixed_vars, rl)
                 else:
-                    formula += ' + (1 | {:s})'.format(r)
+                    formula += ' + (1 | {:s})'.format(rl)
 
         # Optimizer parameter
         opt_call = ''
