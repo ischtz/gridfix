@@ -343,7 +343,7 @@ class RegionSet(object):
                 if values is not None and len(values) == apply_regions.shape[0]:
                     rmap[region] = values[idx]
                     ax1.imshow(np.ma.masked_equal(rmap, 0), cmap=alpha_cmap, interpolation='none', alpha=alpha, 
-                               vmin=min(values), vmax=max(values))
+                               vmin=0, vmax=np.nanmax(values))
 
                 else:
                     rmap[region] = idx + 1
@@ -358,7 +358,7 @@ class RegionSet(object):
                 rmap = np.zeros(self._msize)
                 for idx, region in enumerate(apply_regions):
                     rmap[region] = values[idx]
-                ax1.imshow(np.ma.masked_equal(rmap, 0), cmap=plt.get_cmap(cmap), interpolation='none', vmin=min(values), vmax=max(values))
+                ax1.imshow(np.ma.masked_equal(rmap, 0), cmap=plt.get_cmap(cmap), interpolation='none', vmin=0, vmax=np.nanmax(values))
             else:
                 ax1.imshow(np.ma.masked_equal(self.region_map(imageid), 0), cmap=plt.get_cmap(cmap), interpolation='none', 
                            vmin=0, vmax=apply_regions.shape[0])
