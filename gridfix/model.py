@@ -928,10 +928,11 @@ class FixationModel(object):
         src = ''
         if comments:
             d = time.strftime('%d.%m.%y, %H:%M:%S', time.localtime())
-            src =  '# GridFix GLMM R source, generated on {:s}\n'.format(d)
-            src += '# input file:\t{:s}\n'.format(datafile)
-            src += '# RegionSet:\t{:s}\n'.format(str(self.regionset))
-            src += '# DV type(s):\t{:s}\n'.format(str(self.dv_type))
+            src =  '# GridFix GLMM R source, generated on {:s}\n# \n'.format(d)
+            src += '# Predictor file:\t{:s}\n'.format(datafile)
+            src += '# Fixations file:\t{:s}\n'.format(str(self._fix.input_file))
+            src += '# RegionSet:\t\t{:s}\n'.format(str(self.regionset))
+            src += '# DV type(s):\t\t{:s}\n'.format(str(self.dv_type))
             src += '\n'
 
         # Libraries
