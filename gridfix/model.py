@@ -34,7 +34,7 @@ class ImageSet(object):
     """
 
     def __init__(self, images, mat_var=None, size=None, imageids=None, 
-                 sep='\t', label=None, normalize=None, preload=False):
+                 sep='\t', label=None, normalize=None, norm_range=None, preload=False):
         """ Create a new ImageSet and add specified images 
 
         Args:
@@ -52,6 +52,8 @@ class ImageSet(object):
             label (string): optional descriptive label
             normalize (boolean): normalize image color / luminance values to 0...1
                 (defaults to True for images, False for MATLAB data)
+            norm_range (tuple): normalization range. Defaults to (0, 255) for image
+                files and per-image (min, max) for data read from MATLAB files
             preload (boolean): if True, load all images at creation time
                 (faster, but uses a lot of memory)
         """
@@ -65,6 +67,7 @@ class ImageSet(object):
         self.size = None
         self.label = label
         self.normalize = normalize
+        self.norm_range = norm_range
         self.preload = preload
         self._last_image = None
         self._last_imageid = None
@@ -273,10 +276,17 @@ class ImageSet(object):
                 imdata = np.asarray(i, dtype=float)
 
             if self.normalize is None and imeta.type.iloc[0] != 'MAT':
-                imdata = imdata / 255.0
+                if self.norm_range is None:
+                    imdata = imdata / 255.0
+                else:
+                    imdata = (imdata - self.norm_range[0]) / (self.norm_range[1] - self.norm_range[0])
                 self.normalize = True
+
             elif self.normalize:
-                imdata = imdata / 255.0
+                if self.norm_range is None:
+                    imdata = (imdata - imdata.min()) / (imdata.max() - imdata.min())
+                else:
+                    imdata = (imdata - self.norm_range[0]) / (self.norm_range[1] - self.norm_range[0])
 
             self._last_imageid = imageid
             self._last_image = imdata
