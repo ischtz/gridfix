@@ -592,7 +592,7 @@ class RegionSet(object):
                 if exclude_first:
                     try:
                         is_first = roi[first_fix[fixations._ypx], first_fix[fixations._xpx]]
-                        if isinstance(is_first, np.ndarray) and any(is_first):
+                        if isinstance(is_first, np.ndarray) and np.any(is_first):
                             vis[idx] = np.nan
                         elif is_first:
                             vis[idx] = np.nan

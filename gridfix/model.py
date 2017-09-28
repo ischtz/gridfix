@@ -519,7 +519,6 @@ class Fixations(object):
 
         # Fixation timing columns (optional, default: not specified)
         self.has_times = False
-        #if fixstart is None and fixend is not None
         if fixstart is not None and fixend is not None:
             if fixstart not in self.data.columns.values:
                 raise ValueError('Unknown column specified for fixation start time: "{:s}"'.format(fixstart))
@@ -528,7 +527,7 @@ class Fixations(object):
             self.has_times = True
             self.data[self._fixdur] = self.data[self._fixend] - self.data[self._fixstart]
         else:
-            if fixstart is None or fixend is None:
+            if (fixstart is None) - (fixend is None) != 0:
                 raise ValueError('Optional timing columns (fixstart, fixend) must be specified together!')
 
         # If ImageSet provided, check if all images are present
@@ -810,10 +809,11 @@ class FixationModel(object):
         predictors (DataFrame): model predictors for GLMM
         regionset (RegionSet): attached RegionSet
         runtime (float): time in seconds for most recent update of predictor matrix
+        normalize_features (bool): if True, feature values are normalized to 0..1 range
     """
 
     def __init__(self, fixations, regionset, dv_type='fixated', features=None, feature_labels=None,
-                 chunks=[], progress=False, exclude_first_fix=False):
+                 chunks=[], progress=False, exclude_first_fix=False, normalize_features=False):
         """ Create a new FixationModel.
 
         Args:
@@ -827,6 +827,7 @@ class FixationModel(object):
             chunks (list): list of fixation data columns that define chunks (e.g., subjects or sessions)
             progress (bool): print current image and group variables to indicate model build progress
             exclude_first_fix (bool): if True, set first fixated region per image to NaN for GLMM
+            normalize_features (bool): if True, normalize feature values to 0..1 range
         """
         self.regionset = regionset
 
@@ -836,6 +837,7 @@ class FixationModel(object):
 
         self.features = {}
         self.comp_features = {}
+        self.normalize_features = normalize_features
         self.exclude_first_fix = exclude_first_fix
 
         if type(dv_type) != list:
@@ -1084,14 +1086,14 @@ class FixationModel(object):
 
             # Simple per-image features
             for feat_col, feat in self.features.items():
-                tmpdf[feat_col] = feat.apply(imageid)
+                tmpdf[feat_col] = feat.apply(imageid, normalize=self.normalize_features)
 
             # Feature group comparisons
             if len(self.comp_features) > 0:
                 for levels in group_levels:
                     for idx, gc in enumerate(self.comp_features.keys()):
                         tmpdf[gc] = levels[idx]
-                        tmpdf['{:s}_val'.format(gc)] = self.comp_features[gc][levels[idx]].apply(imageid)
+                        tmpdf['{:s}_val'.format(gc)] = self.comp_features[gc][levels[idx]].apply(imageid, normalize=self.normalize_features)
 
             return tmpdf
 
