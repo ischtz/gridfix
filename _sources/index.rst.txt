@@ -6,7 +6,8 @@
 Welcome to the GridFix documentation!
 =====================================
 
-GridFix is a Python toolbox to facilitate preprocessing of scene fixation data for the grid-based analysis approach first described in Nuthmann & Einhäuser (2016) ANYAS. 
+GridFix is a Python toolbox to facilitate preprocessing of scene fixation data for the grid-based analysis approach using Generalized Linear Mixed Models (GLMM) described in `Nuthmann, Einhäuser & Schütz (2017) <https://www.frontiersin.org/articles/10.3389/fnhum.2017.00491>`_ and `Nuthmann & Einhäuser (2015) <http://dx.doi.org/10.1111/nyas.12705>`_.
+
 
 .. toctree::
    :maxdepth: 2
