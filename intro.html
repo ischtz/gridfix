@@ -36,7 +36,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="GridFix 0.2 documentation" href="index.html"/>
-        <link rel="next" title="2. GridFix Tutorial" href="tutorial.html"/>
+        <link rel="next" title="2. Installation" href="install.html"/>
         <link rel="prev" title="Welcome to the GridFix documentation!" href="index.html"/> 
 
   
@@ -93,14 +93,15 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#toolbox-features">1.1. Toolbox Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">1.1. Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#citing-gridfix">1.2. Citing GridFix</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">1.3. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">2. Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">3. Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">4. Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">4. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">5. Module Reference</a></li>
 </ul>
 
             
@@ -200,26 +201,32 @@
 </style>
 <div class="section" id="gridfix-introduction">
 <h1>1. GridFix Introduction<a class="headerlink" href="#gridfix-introduction" title="Permalink to this headline">¶</a></h1>
-<p>GridFix is a Python toolbox to facilitate preprocessing of scene fixation data for the grid-based analysis approach first described in [1].</p>
-<p>A manuscript describing the toolbox in detail is currently in preparation and we will make the toolbox and an example dataset available here upon its acceptance. In the meantime, the poster we presented at ECVP 2016 in Barcelona gives an overview about the structure and workflow of the GridFix toolbox: <a class="reference external" href="http://doi.org/10.5281/zenodo.571067">http://doi.org/10.5281/zenodo.571067</a></p>
-<div class="section" id="toolbox-features">
-<h2>1.1. Toolbox Features<a class="headerlink" href="#toolbox-features" title="Permalink to this headline">¶</a></h2>
+<p>GridFix is a Python toolbox to facilitate preprocessing of scene fixation data for region-based analysis using Generalized Linear Mixed Models (GLMM).</p>
+<p>Our <a class="reference external" href="https://www.frontiersin.org/articles/10.3389/fnhum.2017.00491">recently published manuscript</a> [1] describes how this approach can be used to evaluate models of visual saliency above and beyond content-independent biases. Please also see [2] for a previous description of the approach and <a class="reference external" href="http://doi.org/10.5281/zenodo.571067">our ECVP 2016 poster</a> for an overview about the structure and workflow of the GridFix toolbox.</p>
+<p>Example data and Jupyter Notebooks for the &#8220;Tutorial&#8221; section are also available for download at <a class="reference external" href="https://github.com/ischtz/gridfix-tutorial/releases">https://github.com/ischtz/gridfix-tutorial/releases</a>.</p>
+<img alt="_images/example_grid.png" src="_images/example_grid.png" />
+<div class="section" id="features">
+<h2>1.1. Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Define image parcellations (region masks) based on a regular grid (RegionSet), with other parcellation types planned for future versions</li>
 <li>Apply these parcellations to collections of images or saliency maps (ImageSet)</li>
 <li>Define features to assign a value to each region X image (e.g., mean saliency of each region)</li>
 <li>Explicitly model central viewer bias using different approaches (e.g. euclidean distance, Gaussian)</li>
-<li>Output the resulting feature vectors for GLMM-based analysis [1]</li>
-<li>Create R source code for GLMM analysis using lme4</li>
+<li>Output the resulting feature vectors for GLMM-based analysis (see [1-2])</li>
+<li>Create R source code for subsequent GLMM analysis using lme4</li>
 </ul>
 </div>
 <div class="section" id="citing-gridfix">
 <h2>1.2. Citing GridFix<a class="headerlink" href="#citing-gridfix" title="Permalink to this headline">¶</a></h2>
-<p>tbd</p>
+<p>If you use GridFix, please cite the following publication:</p>
+<p>Nuthmann, A., Einhäuser, W., &amp; Schütz, I. (2017). How well can saliency models predict fixation selection in scenes beyond central bias? A new approach to model evaluation using generalized linear mixed models. Frontiers in Human Neuroscience. <a class="reference external" href="http://doi.org/10.3389/fnhum.2017.00491">http://doi.org/10.3389/fnhum.2017.00491</a></p>
+<p>It is also possible to cite the software itself. In this case, please use the following Zenodo DOI:</p>
+<a class="reference external image-reference" href="https://doi.org/10.5281/zenodo.998554"><img alt="https://zenodo.org/badge/DOI/10.5281/zenodo.998554.svg" src="https://zenodo.org/badge/DOI/10.5281/zenodo.998554.svg" /></a>
 </div>
 <div class="section" id="references">
 <h2>1.3. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<p>[1] Nuthmann, A., &amp; Einhäuser, W. (2015). A new approach to modeling the influence of image features on fixation selection in scenes. Annals of the New York Academy of Sciences, 1339(1), 82-96. <a class="reference external" href="http://dx.doi.org/10.1111/nyas.12705">http://dx.doi.org/10.1111/nyas.12705</a></p>
+<p>[1] Nuthmann, A., Einhäuser, W., &amp; Schütz, I. (2017). How well can saliency models predict fixation selection in scenes beyond central bias? A new approach to model evaluation using generalized linear mixed models. Frontiers in Human Neuroscience. <a class="reference external" href="http://doi.org/10.3389/fnhum.2017.00491">http://doi.org/10.3389/fnhum.2017.00491</a></p>
+<p>[2] Nuthmann, A., &amp; Einhäuser, W. (2015). A new approach to modeling the influence of image features on fixation selection in scenes. Annals of the New York Academy of Sciences, 1339(1), 82-96. <a class="reference external" href="http://dx.doi.org/10.1111/nyas.12705">http://dx.doi.org/10.1111/nyas.12705</a></p>
 </div>
 </div>
 
@@ -233,7 +240,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="2. GridFix Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="install.html" class="btn btn-neutral float-right" title="2. Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="Welcome to the GridFix documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

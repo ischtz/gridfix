@@ -210,7 +210,7 @@
 <span id="main-classes-gridfix-model"></span><h2>5.1.1. Main Classes (gridfix.model)<a class="headerlink" href="#module-gridfix.model" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gridfix.model.FixationModel">
-<em class="property">class </em><code class="descclassname">gridfix.model.</code><code class="descname">FixationModel</code><span class="sig-paren">(</span><em>fixations</em>, <em>regionset</em>, <em>dv_type='fixated'</em>, <em>features=None</em>, <em>feature_labels=None</em>, <em>chunks=[]</em>, <em>progress=False</em>, <em>exclude_first_fix=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.FixationModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.model.</code><code class="descname">FixationModel</code><span class="sig-paren">(</span><em>fixations</em>, <em>regionset</em>, <em>dv_type='fixated'</em>, <em>features=None</em>, <em>feature_labels=None</em>, <em>chunks=[]</em>, <em>progress=False</em>, <em>exclude_first_fix=False</em>, <em>normalize_features=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#FixationModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.FixationModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Combines Features and Fixations to create predictors and R source for GLMM</p>
 <dl class="attribute">
@@ -256,9 +256,15 @@ for each feature in a comparison so that features can serve as fixed or random f
 <dd><p><em>float</em> &#8211; time in seconds for most recent update of predictor matrix</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="gridfix.model.FixationModel.normalize_features">
+<code class="descname">normalize_features</code><a class="headerlink" href="#gridfix.model.FixationModel.normalize_features" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; if True, feature values are normalized to 0..1 range</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="gridfix.model.FixationModel.add_comparison">
-<code class="descname">add_comparison</code><span class="sig-paren">(</span><em>features</em>, <em>codes=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.FixationModel.add_comparison" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_comparison</code><span class="sig-paren">(</span><em>features</em>, <em>codes=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#FixationModel.add_comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.FixationModel.add_comparison" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a feature comparison group to the model.</p>
 <p>This generates a long-style predictor matrix for the specified features,
 needed to compare e.g. different saliency maps in their relative effects.</p>
@@ -279,7 +285,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 
 <dl class="method">
 <dt id="gridfix.model.FixationModel.add_feature">
-<code class="descname">add_feature</code><span class="sig-paren">(</span><em>feature</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.FixationModel.add_feature" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_feature</code><span class="sig-paren">(</span><em>feature</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#FixationModel.add_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.FixationModel.add_feature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a feature to the model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -303,7 +309,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 
 <dl class="method">
 <dt id="gridfix.model.FixationModel.r_source">
-<code class="descname">r_source</code><span class="sig-paren">(</span><em>datafile='gridfix.csv'</em>, <em>comments=True</em>, <em>scale=True</em>, <em>center=True</em>, <em>optimizer=None</em>, <em>fixed=None</em>, <em>random=None</em>, <em>random_intercepts=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.FixationModel.r_source" title="Permalink to this definition">¶</a></dt>
+<code class="descname">r_source</code><span class="sig-paren">(</span><em>datafile='gridfix.csv'</em>, <em>comments=True</em>, <em>scale=True</em>, <em>center=True</em>, <em>optimizer=None</em>, <em>fixed=None</em>, <em>random=None</em>, <em>random_slopes=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#FixationModel.r_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.FixationModel.r_source" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate R source code from current feature settings.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -317,7 +323,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 <li><strong>optimizer</strong> (<em>str</em>) &#8211; optional optimizer to pass to R glmer()</li>
 <li><strong>fixed</strong> (<em>list</em>) &#8211; list of column names (strings) to add as fixed factors</li>
 <li><strong>random</strong> (<em>list</em>) &#8211; list of column names (strings) to add as random factors</li>
-<li><strong>random_intercepts</strong> (<em>boolean</em>) &#8211; also add random intercepts</li>
+<li><strong>random_slopes</strong> (<em>boolean</em>) &#8211; also add random slopes to generated R code</li>
 </ul>
 </td>
 </tr>
@@ -330,7 +336,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 
 <dl class="method">
 <dt id="gridfix.model.FixationModel.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>basename</em>, <em>sep='\t'</em>, <em>pred=True</em>, <em>pred_pickle=False</em>, <em>src=True</em>, <em>src_comments=True</em>, <em>precision=10</em>, <em>optimizer=None</em>, <em>fixed=None</em>, <em>random=None</em>, <em>random_intercepts=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.FixationModel.save" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save</code><span class="sig-paren">(</span><em>basename</em>, <em>sep='\t'</em>, <em>pred=True</em>, <em>pred_pickle=False</em>, <em>src=True</em>, <em>src_comments=True</em>, <em>precision=10</em>, <em>optimizer=None</em>, <em>fixed=None</em>, <em>random=None</em>, <em>random_slopes=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#FixationModel.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.FixationModel.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the predictor matrix to a CSV text file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -347,7 +353,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 <li><strong>optimizer</strong> (<em>str</em>) &#8211; optional optimizer to pass to R glmer()</li>
 <li><strong>fixed</strong> (<em>list</em>) &#8211; list of column names (strings) to add as fixed factors</li>
 <li><strong>random</strong> (<em>list</em>) &#8211; list of column names (strings) to add as random factors</li>
-<li><strong>random_intercepts</strong> (<em>boolean</em>) &#8211; also add random intercepts</li>
+<li><strong>random_slopes</strong> (<em>boolean</em>) &#8211; also add random slopes to generated R code</li>
 </ul>
 </td>
 </tr>
@@ -357,7 +363,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 
 <dl class="method">
 <dt id="gridfix.model.FixationModel.update">
-<code class="descname">update</code><span class="sig-paren">(</span><em>progress=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.FixationModel.update" title="Permalink to this definition">¶</a></dt>
+<code class="descname">update</code><span class="sig-paren">(</span><em>progress=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#FixationModel.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.FixationModel.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update predictor matrix from features (this may take a while).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -373,7 +379,7 @@ needed to compare e.g. different saliency maps in their relative effects.</p>
 
 <dl class="class">
 <dt id="gridfix.model.Fixations">
-<em class="property">class </em><code class="descclassname">gridfix.model.</code><code class="descname">Fixations</code><span class="sig-paren">(</span><em>data</em>, <em>imageset=None</em>, <em>offset=(0</em>, <em>0)</em>, <em>imageid='imageid'</em>, <em>fixid='fixid'</em>, <em>x='x'</em>, <em>y='y'</em>, <em>numericid=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.Fixations" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.model.</code><code class="descname">Fixations</code><span class="sig-paren">(</span><em>data</em>, <em>imageset=None</em>, <em>offset=(0</em>, <em>0)</em>, <em>imageid='imageid'</em>, <em>fixid='fixid'</em>, <em>x='x'</em>, <em>y='y'</em>, <em>fixstart=None</em>, <em>fixend=None</em>, <em>numericid=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Dataset of fixation locations.</p>
 <p>Fixation locations are assumed to be one-indexed in input, e.g. 1..800 if
@@ -383,6 +389,12 @@ array convention.</p>
 <dt id="gridfix.model.Fixations.data">
 <code class="descname">data</code><a class="headerlink" href="#gridfix.model.Fixations.data" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>DataFrame</em> &#8211; DataFrame of raw fixation data</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gridfix.model.Fixations.has_times">
+<code class="descname">has_times</code><a class="headerlink" href="#gridfix.model.Fixations.has_times" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>boolean</em> &#8211; True if fixation times have been loaded</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -435,7 +447,7 @@ array convention.</p>
 
 <dl class="method">
 <dt id="gridfix.model.Fixations.count_map">
-<code class="descname">count_map</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.Fixations.count_map" title="Permalink to this definition">¶</a></dt>
+<code class="descname">count_map</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations.count_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations.count_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Map of fixation counts for each image pixel</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -455,8 +467,29 @@ array convention.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gridfix.model.Fixations.dur_map">
+<code class="descname">dur_map</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations.dur_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations.dur_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of total fixation durations for each image pixel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>imageid</strong> (<em>str</em>) &#8211; optional image ID to create map for one image only</li>
+<li><strong>size</strong> (<em>tuple</em>) &#8211; image dimensions, specified as (width, height).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">2d ndarray of fixation durations at each pixel</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="gridfix.model.Fixations.location_map">
-<code class="descname">location_map</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.Fixations.location_map" title="Permalink to this definition">¶</a></dt>
+<code class="descname">location_map</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>size=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations.location_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations.location_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Binary ndarray of fixated and non-fixated pixels within image area</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -477,7 +510,7 @@ array convention.</p>
 
 <dl class="method">
 <dt id="gridfix.model.Fixations.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>select={}</em>, <em>on_image=True</em>, <em>oob=False</em>, <em>plotformat='wo'</em>, <em>image_only=False</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.Fixations.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>select={}</em>, <em>on_image=True</em>, <em>oob=False</em>, <em>plotformat='wo'</em>, <em>durations=False</em>, <em>image_only=False</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot fixations for selected imageid, either alone or on image</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -489,6 +522,7 @@ array convention.</p>
 <li><strong>image</strong> (<em>bool</em>) &#8211; if True, superimpose fixations onto image (if ImageSet present)</li>
 <li><strong>oob</strong> (<em>bool</em>) &#8211; if True, include out-of-bounds fixations when plotting</li>
 <li><strong>plotformat</strong> (<em>str</em>) &#8211; format string for plt.pyplot.plot(), default: white circles</li>
+<li><strong>durations</strong> (<em>bool</em>) &#8211; if True, plot duration of each fixation next to marker</li>
 <li><strong>image_only</strong> (<em>boolean</em>) &#8211; if True, return only image content without labels</li>
 <li><strong>ax</strong> (<em>Axes</em>) &#8211; axes object to draw to, to include result in other figure</li>
 </ul>
@@ -503,7 +537,7 @@ array convention.</p>
 
 <dl class="method">
 <dt id="gridfix.model.Fixations.select_fix">
-<code class="descname">select_fix</code><span class="sig-paren">(</span><em>select={}</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.Fixations.select_fix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">select_fix</code><span class="sig-paren">(</span><em>select={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations.select_fix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations.select_fix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a subset of fixation data for specified imageid.</p>
 <dl class="docutils">
 <dt>Args:.</dt>
@@ -521,7 +555,7 @@ array convention.</p>
 
 <dl class="method">
 <dt id="gridfix.model.Fixations.set_offset">
-<code class="descname">set_offset</code><span class="sig-paren">(</span><em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.Fixations.set_offset" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_offset</code><span class="sig-paren">(</span><em>offset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#Fixations.set_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.Fixations.set_offset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set a constant offset for eye x/y coordinates.</p>
 <p>If image coordinates are relative to image center, use (-width/2, -height/2)
 (GridFix uses a coordinate origin at the top left).</p>
@@ -539,7 +573,7 @@ array convention.</p>
 
 <dl class="class">
 <dt id="gridfix.model.ImageSet">
-<em class="property">class </em><code class="descclassname">gridfix.model.</code><code class="descname">ImageSet</code><span class="sig-paren">(</span><em>images</em>, <em>mat_var=None</em>, <em>size=None</em>, <em>imageids=None</em>, <em>sep='t'</em>, <em>label=None</em>, <em>normalize=None</em>, <em>preload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.ImageSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.model.</code><code class="descname">ImageSet</code><span class="sig-paren">(</span><em>images</em>, <em>mat_var=None</em>, <em>size=None</em>, <em>imageids=None</em>, <em>sep='t'</em>, <em>label=None</em>, <em>normalize=None</em>, <em>norm_range=None</em>, <em>preload=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#ImageSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.ImageSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Set of images of equal size for masking and Feature creation.</p>
 <dl class="attribute">
@@ -592,7 +626,7 @@ array convention.</p>
 
 <dl class="method">
 <dt id="gridfix.model.ImageSet.image">
-<code class="descname">image</code><span class="sig-paren">(</span><em>imageid</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.ImageSet.image" title="Permalink to this definition">¶</a></dt>
+<code class="descname">image</code><span class="sig-paren">(</span><em>imageid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#ImageSet.image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.ImageSet.image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get image by imageid, loading it if not preloaded</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -608,7 +642,7 @@ array convention.</p>
 
 <dl class="method">
 <dt id="gridfix.model.ImageSet.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid</em>, <em>cmap='gray'</em>, <em>image_only=False</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.model.ImageSet.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid</em>, <em>cmap='gray'</em>, <em>image_only=False</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/model.html#ImageSet.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.model.ImageSet.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display one of the contained images by imageid using matplotlib</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -636,7 +670,7 @@ array convention.</p>
 <span id="region-sets-gridfix-regionset"></span><h2>5.1.2. Region Sets (gridfix.regionset)<a class="headerlink" href="#module-gridfix.regionset" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gridfix.regionset.GridRegionSet">
-<em class="property">class </em><code class="descclassname">gridfix.regionset.</code><code class="descname">GridRegionSet</code><span class="sig-paren">(</span><em>size</em>, <em>gridsize=None</em>, <em>label=None</em>, <em>region_labels=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.GridRegionSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.regionset.</code><code class="descname">GridRegionSet</code><span class="sig-paren">(</span><em>size</em>, <em>gridsize=None</em>, <em>label=None</em>, <em>region_labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#GridRegionSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.GridRegionSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gridfix.regionset.RegionSet" title="gridfix.regionset.RegionSet"><code class="xref py py-class docutils literal"><span class="pre">gridfix.regionset.RegionSet</span></code></a></p>
 <p>RegionSet defining an n-by-m regular grid covering the full image size.</p>
 <dl class="attribute">
@@ -663,7 +697,7 @@ gridfix will try to choose a sensible default.</p>
 
 <dl class="class">
 <dt id="gridfix.regionset.RegionSet">
-<em class="property">class </em><code class="descclassname">gridfix.regionset.</code><code class="descname">RegionSet</code><span class="sig-paren">(</span><em>size</em>, <em>regions</em>, <em>region_labels=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.regionset.</code><code class="descname">RegionSet</code><span class="sig-paren">(</span><em>size</em>, <em>regions</em>, <em>region_labels=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for sets of image regions of interest.</p>
 <p>RegionSets can be used to spatially group fixations, create Feature objects
@@ -707,7 +741,7 @@ RegionSet may specify functions to create regions.</p>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>image</em>, <em>imageid=None</em>, <em>crop=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>image</em>, <em>imageid=None</em>, <em>crop=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply this RegionSet to a specified image.</p>
 <p>Returns a list of the image arrays &#8220;cut out&#8221; by each region mask, with
 non-selected image areas in black. If regionset is not global, _imageid_ needs
@@ -733,7 +767,7 @@ zeroed. Else a list of image patch arrays cropped to bounding box size.</p>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.count_map">
-<code class="descname">count_map</code><span class="sig-paren">(</span><em>imageid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.count_map" title="Permalink to this definition">¶</a></dt>
+<code class="descname">count_map</code><span class="sig-paren">(</span><em>imageid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.count_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.count_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the number of regions referencing each pixel.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -749,7 +783,7 @@ zeroed. Else a list of image patch arrays cropped to bounding box size.</p>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.coverage">
-<code class="descname">coverage</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.coverage" title="Permalink to this definition">¶</a></dt>
+<code class="descname">coverage</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.coverage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates coverage of the total image size as a scalar.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -770,7 +804,7 @@ zeroed. Else a list of image patch arrays cropped to bounding box size.</p>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.export_patches">
-<code class="descname">export_patches</code><span class="sig-paren">(</span><em>image</em>, <em>imageid=None</em>, <em>crop=True</em>, <em>image_format='png'</em>, <em>rescale=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.export_patches" title="Permalink to this definition">¶</a></dt>
+<code class="descname">export_patches</code><span class="sig-paren">(</span><em>image</em>, <em>imageid=None</em>, <em>crop=True</em>, <em>image_format='png'</em>, <em>rescale=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.export_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.export_patches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply this RegionSet to an image array and save the resulting image patches as files.</p>
 <p>Saves an image of each image part &#8220;cut out&#8221; by each region mask, cropped by default.
 If the RegionSet is not global, imageid needs to be specified!</p>
@@ -794,7 +828,7 @@ before saving (e.g., for saliency maps)</li>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.export_patches_from_set">
-<code class="descname">export_patches_from_set</code><span class="sig-paren">(</span><em>imageset</em>, <em>crop=True</em>, <em>image_format='png'</em>, <em>rescale=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.export_patches_from_set" title="Permalink to this definition">¶</a></dt>
+<code class="descname">export_patches_from_set</code><span class="sig-paren">(</span><em>imageset</em>, <em>crop=True</em>, <em>image_format='png'</em>, <em>rescale=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.export_patches_from_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.export_patches_from_set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save all sliced image patches from an ImageSet as image files.</p>
 <p>Saves an image of each image part &#8220;cut out&#8221; by each region mask, cropped by default.
 If the RegionSet is not global, only images with valid region masks will be processed.</p>
@@ -818,7 +852,7 @@ before saving (e.g., for saliency maps)</li>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.fixated">
-<code class="descname">fixated</code><span class="sig-paren">(</span><em>fixations</em>, <em>imageid=None</em>, <em>count=False</em>, <em>exclude_first=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.fixated" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fixated</code><span class="sig-paren">(</span><em>fixations</em>, <em>imageid=None</em>, <em>count=False</em>, <em>exclude_first=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.fixated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.fixated" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns visited / fixated regions using data from a Fixations object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -854,7 +888,7 @@ or the values 0.0 (region was not fixated) or 1.0 (region was fixated)</p>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.mask">
-<code class="descname">mask</code><span class="sig-paren">(</span><em>imageid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.mask" title="Permalink to this definition">¶</a></dt>
+<code class="descname">mask</code><span class="sig-paren">(</span><em>imageid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return union mask of all regions or regions for specified image.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -877,7 +911,7 @@ references the corresponding pixel.</td>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>values=None</em>, <em>cmap=None</em>, <em>image_only=False</em>, <em>ax=None</em>, <em>alpha=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>values=None</em>, <em>cmap=None</em>, <em>image_only=False</em>, <em>ax=None</em>, <em>alpha=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot regions as map of shaded areas with/without corresponding feature values</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -902,7 +936,7 @@ references the corresponding pixel.</td>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.plot_regions_on_image">
-<code class="descname">plot_regions_on_image</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>imageset=None</em>, <em>cmap=None</em>, <em>fill=False</em>, <em>alpha=0.4</em>, <em>labels=False</em>, <em>image_only=False</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.plot_regions_on_image" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_regions_on_image</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>imageset=None</em>, <em>cmap=None</em>, <em>fill=False</em>, <em>alpha=0.4</em>, <em>labels=False</em>, <em>image_only=False</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.plot_regions_on_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.plot_regions_on_image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot region bounding boxes on corresponding image</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -929,7 +963,7 @@ references the corresponding pixel.</td>
 
 <dl class="method">
 <dt id="gridfix.regionset.RegionSet.region_map">
-<code class="descname">region_map</code><span class="sig-paren">(</span><em>imageid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.regionset.RegionSet.region_map" title="Permalink to this definition">¶</a></dt>
+<code class="descname">region_map</code><span class="sig-paren">(</span><em>imageid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/regionset.html#RegionSet.region_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.regionset.RegionSet.region_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return map of region numbers, global or image-specifid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -951,7 +985,7 @@ region referencing the corresponding pixel.</td>
 <span id="image-features-gridfix-features"></span><h2>5.1.3. Image Features (gridfix.features)<a class="headerlink" href="#module-gridfix.features" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gridfix.features.CentralBiasFeature">
-<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">CentralBiasFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>measure='gaussian'</em>, <em>sig2=0.22</em>, <em>nu=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.CentralBiasFeature" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">CentralBiasFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>measure='gaussian'</em>, <em>sig2=0.22</em>, <em>nu=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#CentralBiasFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.CentralBiasFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gridfix.features.Feature" title="gridfix.features.Feature"><code class="xref py py-class docutils literal"><span class="pre">gridfix.features.Feature</span></code></a></p>
 <p>Models central viewer bias as the distance to image center for each region.</p>
 <p>The exact model of distance depends on the &#8220;measure&#8221; argument: if set to &#8216;distance&#8217;
@@ -960,7 +994,7 @@ returned. If set to &#8216;gaussian&#8217;, anisotropic Gaussian distance based 
 2014, Vis Res is used and transform() returns the corresponding Gaussian map.</p>
 <dl class="method">
 <dt id="gridfix.features.CentralBiasFeature.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.CentralBiasFeature.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>imageid=None</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#CentralBiasFeature.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.CentralBiasFeature.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply central bias to image, returning region distance values.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -983,7 +1017,7 @@ returned. If set to &#8216;gaussian&#8217;, anisotropic Gaussian distance based 
 
 <dl class="class">
 <dt id="gridfix.features.Feature">
-<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">Feature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>trans_fun=None</em>, <em>comb_fun=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.Feature" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">Feature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>trans_fun=None</em>, <em>comb_fun=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#Feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.Feature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for image features defined for each region in a set</p>
 <p>A Feature can be described as a two-step &#8220;recipe&#8221; on a given ImageSet and
@@ -1010,7 +1044,7 @@ The result is combined into a feature vector of len(regionset).</p>
 
 <dl class="method">
 <dt id="gridfix.features.Feature.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>imageid</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.Feature.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>imageid</em>, <em>normalize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#Feature.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.Feature.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply feature to a single image from associated ImageSet.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1031,7 +1065,7 @@ The result is combined into a feature vector of len(regionset).</p>
 
 <dl class="method">
 <dt id="gridfix.features.Feature.apply_all">
-<code class="descname">apply_all</code><span class="sig-paren">(</span><em>normalize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.Feature.apply_all" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply_all</code><span class="sig-paren">(</span><em>normalize=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#Feature.apply_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.Feature.apply_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply feature to every image in the ImageSet and return a DataFrame.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1046,7 +1080,7 @@ The result is combined into a feature vector of len(regionset).</p>
 
 <dl class="method">
 <dt id="gridfix.features.Feature.combine">
-<code class="descname">combine</code><span class="sig-paren">(</span><em>image</em>, <em>region</em>, <em>fun=&lt;function mean&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.Feature.combine" title="Permalink to this definition">¶</a></dt>
+<code class="descname">combine</code><span class="sig-paren">(</span><em>image</em>, <em>region</em>, <em>fun=&lt;function mean&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#Feature.combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.Feature.combine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine all selected pixel values in selection using specified function.</p>
 <p>In the base Feature class, this simply returns the mean of all pixels.
 This function may be overloaded in subclasses or replaced by the comb_fun= argument.</p>
@@ -1070,7 +1104,7 @@ This function may be overloaded in subclasses or replaced by the comb_fun= argum
 
 <dl class="method">
 <dt id="gridfix.features.Feature.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid</em>, <em>what='both'</em>, <em>cmap='gray'</em>, <em>image_only=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.Feature.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>imageid</em>, <em>what='both'</em>, <em>cmap='gray'</em>, <em>image_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#Feature.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.Feature.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display feature map and/or feature values.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1093,7 +1127,7 @@ This function may be overloaded in subclasses or replaced by the comb_fun= argum
 
 <dl class="method">
 <dt id="gridfix.features.Feature.transform">
-<code class="descname">transform</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.Feature.transform" title="Permalink to this definition">¶</a></dt>
+<code class="descname">transform</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#Feature.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.Feature.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply image transform to specified image.</p>
 <p>In the base Feature class, this simply returns the input image as-is.
 This function may be overloaded in subclasses or replaced by the
@@ -1114,21 +1148,21 @@ trans_fun= argument on construction time.</p>
 
 <dl class="class">
 <dt id="gridfix.features.LumContrastFeature">
-<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">LumContrastFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.LumContrastFeature" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">LumContrastFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#LumContrastFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.LumContrastFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gridfix.features.Feature" title="gridfix.features.Feature"><code class="xref py py-class docutils literal"><span class="pre">gridfix.features.Feature</span></code></a></p>
 <p>Feature based on local luminance contrast in each region</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="gridfix.features.LuminanceFeature">
-<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">LuminanceFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.LuminanceFeature" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">LuminanceFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#LuminanceFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.LuminanceFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gridfix.features.Feature" title="gridfix.features.Feature"><code class="xref py py-class docutils literal"><span class="pre">gridfix.features.Feature</span></code></a></p>
 <p>Models mean image luminance in each region</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="gridfix.features.MapFeature">
-<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">MapFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>stat=&lt;function mean&gt;</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.MapFeature" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">MapFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>stat=&lt;function mean&gt;</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#MapFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.MapFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gridfix.features.Feature" title="gridfix.features.Feature"><code class="xref py py-class docutils literal"><span class="pre">gridfix.features.Feature</span></code></a></p>
 <p>Feature to apply a statistical function to each region in feature maps</p>
 <dl class="attribute">
@@ -1141,7 +1175,7 @@ trans_fun= argument on construction time.</p>
 
 <dl class="class">
 <dt id="gridfix.features.SobelEdgeFeature">
-<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">SobelEdgeFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gridfix.features.SobelEdgeFeature" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gridfix.features.</code><code class="descname">SobelEdgeFeature</code><span class="sig-paren">(</span><em>regionset</em>, <em>imageset</em>, <em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gridfix/features.html#SobelEdgeFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gridfix.features.SobelEdgeFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gridfix.features.Feature" title="gridfix.features.Feature"><code class="xref py py-class docutils literal"><span class="pre">gridfix.features.Feature</span></code></a></p>
 <p>Feature based on relative prevalence of edges within each region</p>
 </dd></dl>

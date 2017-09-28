@@ -92,9 +92,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">2. Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../examples.html">3. Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">4. Module Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">4. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">5. Module Reference</a></li>
 </ul>
 
             
@@ -414,7 +415,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">measure</span> <span class="o">=</span> <span class="n">measure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">sig2</span> <span class="o">=</span> <span class="n">sig2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nu</span> <span class="o">=</span> <span class="n">nu</span>
@@ -477,7 +478,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            1D numpy.ndarray of feature values, same length as regionset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">imageid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">fv</span> <span class="o">=</span> <span class="p">[]</span>
             
             <span class="n">img_trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">()</span>
@@ -486,12 +487,12 @@
                 <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">img_trans</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">))</span>
                 <span class="n">fv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fv</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">imageid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fv</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">imageid</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">imageid</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">imageid</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">imageid</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[</span><span class="n">imageid</span><span class="p">]</span></div>
 
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
