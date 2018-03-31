@@ -204,23 +204,34 @@ class Feature(object):
             ax1 = fig.add_subplot(1,1,1)
             imap = self.transform(self.imageset[imageid])
             ax1.imshow(imap, cmap=plt.get_cmap(cmap), interpolation='none')
+            if image_only:
+                ax1.axis('off')
+            else:
+                plt.title('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
 
         elif what == 'values':
-            fig = self.regionset.plot(self.apply(imageid), imageid=imageid)
-            plt.title('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
+            fig = plt.figure()
+            ax1 = fig.add_subplot(1,1,1)
+            self.regionset.plot(values=self.apply(imageid), imageid=imageid, ax=ax1, image_only=image_only)
+            if image_only:
+                ax1.axis('off')
+            else:
+                plt.title('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
 
         else:
             fig = plt.figure()
             ax1 = fig.add_subplot(1,2,1)
             imap = self.transform(self.imageset[imageid])
             ax1.imshow(imap, cmap=plt.get_cmap(cmap), interpolation='none')
-            ax1.set_title('map')
-
             ax2 = fig.add_subplot(1,2,2)
-            self.regionset.plot(values=self.apply(imageid), imageid=imageid, cmap=cmap, ax=ax2)
-            ax2.set_title('values')
-
-            fig.suptitle('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
+            self.regionset.plot(values=self.apply(imageid), imageid=imageid, cmap=cmap, ax=ax2, image_only=image_only)
+            if image_only:
+                ax1.axis('off')
+                ax2.axis('off')
+            else:
+                ax1.set_title('map')
+                ax2.set_title('values')
+                fig.suptitle('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
 
         if not plt.isinteractive():  # see ImageSet.plot()
             return fig
