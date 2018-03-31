@@ -236,7 +236,7 @@ class CentralBiasFeature(Feature):
     2014, Vis Res is used and transform() returns the corresponding Gaussian map. 
     """
 
-    def __init__(self, regionset, imageset, measure='gaussian', sig2=0.22, nu=None, label=None):
+    def __init__(self, regionset, imageset, measure='gaussian', sig2=0.23, nu=None, label=None):
         """ Create a new CentralBiasFeature object.
 
         Args:
@@ -350,7 +350,7 @@ class CentralBiasFeature(Feature):
         return(r)
 
 
-    def _aniso_gauss(self, shape, sig2=0.22, nu=0.45):
+    def _aniso_gauss(self, shape, sig2=0.23, nu=0.45):
         """ Calculate anisotropic, aspect-corrected Gaussian central bias map.
 
         This function yields an image-sized Gaussian map of the distance
