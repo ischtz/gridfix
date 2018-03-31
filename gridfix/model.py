@@ -561,7 +561,7 @@ class Fixations(object):
 
     def __getitem__(self, imageid):
         """ Bracket indexing returns all fixations for a specified image """
-        return self.select_fix(select={'imageid': imageid})
+        return self.select_fix(select={self._imageid: imageid})
 
 
     def set_offset(self, offset):
