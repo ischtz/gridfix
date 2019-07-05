@@ -199,7 +199,7 @@ class ImageSet(object):
                 if imageids is not None and len(imageids) > 0:
                     imageid = imageids.pop(0)
                 else:
-                    imageid = iffile
+                    imageid = ifbase
                 imeta['imageid'] = imageid
 
                 if imageid in self.imageids:
