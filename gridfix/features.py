@@ -187,7 +187,7 @@ class Feature(object):
         return df
 
 
-    def plot(self, imageid, what='both', cmap='gray', image_only=False):
+    def plot(self, imageid, what='both', cmap='gray', image_only=False, ax=None):
         """ Display feature map and/or feature values.
 
         Args:
@@ -195,30 +195,46 @@ class Feature(object):
             what (str): show only feature 'values', 'map' or 'both'
             cmap (str): name of matplotlib colormap to use
             image_only (boolean): if True, return only image content without labels
+            ax (Axes): axes object to draw to (only if what!='both')
 
         Returns:
             matplotlib figure object, or None if passed an axis to draw on
         """
+        lbl_text = ''
+        if self.label is not None:
+            lbl_text = ': {:s}'.format(str(self.label))
+
         if what == 'map':
-            fig = plt.figure()
-            ax1 = fig.add_subplot(1,1,1)
+            if ax is not None:
+                ax1 = ax
+            else:
+                fig = plt.figure()
+                ax1 = fig.add_subplot(1,1,1)
+
             imap = self.transform(self.imageset[imageid])
             ax1.imshow(imap, cmap=plt.get_cmap(cmap), interpolation='none')
             if image_only:
                 ax1.axis('off')
             else:
-                plt.title('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
+                ax1.set_title('{:s}{:s} (img: {:s})'.format(self.__class__.__name__, lbl_text, imageid))
 
         elif what == 'values':
-            fig = plt.figure()
-            ax1 = fig.add_subplot(1,1,1)
-            self.regionset.plot(values=self.apply(imageid), imageid=imageid, ax=ax1, image_only=image_only)
+            if ax is not None:
+                ax1 = ax
+            else:
+                fig = plt.figure()
+                ax1 = fig.add_subplot(1,1,1)
+
+            self.regionset.plot(values=self.apply(imageid), imageid=imageid, cmap=cmap, ax=ax1, image_only=image_only)
             if image_only:
                 ax1.axis('off')
             else:
-                plt.title('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
+                ax1.set_title('{:s}{:s} (img: {:s})'.format(self.__class__.__name__, lbl_text, imageid))
 
         else:
+            if ax is not None:
+                print('Warning: ax argument is only valid if a single plot type is specified! Returning full figure instead.')
+
             fig = plt.figure()
             ax1 = fig.add_subplot(1,2,1)
             imap = self.transform(self.imageset[imageid])
@@ -231,9 +247,9 @@ class Feature(object):
             else:
                 ax1.set_title('map')
                 ax2.set_title('values')
-                fig.suptitle('{:s} (image: "{:s}")'.format(self.__class__.__name__, imageid))
+                fig.suptitle('{:s}{:s} (img: {:s})'.format(self.__class__.__name__, lbl_text, imageid))
 
-        if not plt.isinteractive():  # see ImageSet.plot()
+        if ax is None and not plt.isinteractive():  # see ImageSet.plot()
             return fig
 
 

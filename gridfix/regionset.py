@@ -369,9 +369,9 @@ class RegionSet(object):
         else:
             t = '{:s}'.format(self.__class__.__name__)
             if self.label is not None:
-                t += ' "{:s}"'.format(self.label)
+                t += ': {:s}'.format(self.label)
             if imageid is not None:
-                t += ': {:s}'.format(imageid)
+                t += ' (img: {:s})'.format(imageid)
             ax1.set_title(t)
 
         if ax is None and not plt.isinteractive():  # see ImageSet.plot()
@@ -447,8 +447,8 @@ class RegionSet(object):
         else:
             t = '{:s}'.format(self.__class__.__name__)
             if self.label is not None:
-                t += ' "{:s}"'.format(self.label)
-            t += ': {:s}'.format(imageid)
+                t += ': {:s}'.format(self.label)
+            t += ' (img: {:s})'.format(imageid)
             ax1.set_title(t)
 
         if ax is None and not plt.isinteractive():  # see ImageSet.plot()
