@@ -715,3 +715,166 @@ class GridRegionSet(RegionSet):
                 cellno += 1
 
         return (grid, cells)
+
+
+
+class BBoxRegionSet(RegionSet):
+    """ RegionSet based on rectangular bounding boxes.
+
+    Attributes:
+        cells (list): list of bounding box tuples for each cell,
+            each formatted as (left, top, right, bottom)
+        label (string): optional label to distinguish between RegionSets
+        from_file (string): filename in case regions were loaded from file
+        padding (tuple): padding in pixels as ('left', 'top', 'right', 'bottom')
+    """
+
+    def __init__(self, size, bounding_boxes, label=None, region_labels=None, sep='\t',
+                 imageid='imageid', regionid='regionid', bbox_cols=('x1', 'y1', 'x2', 'y2'),
+                 padding=0):
+        """ Create new BBoxRegionSet
+
+        Args:
+            size (tuple):   image dimensions, specified as (width, height).
+            bounding_boxes: one of the following:
+                name of a text/CSV file with columns ([imageid], [regionid], x1, y1, x2, y2)
+                list of 4-tuples OR 2D ndarray with columns (x1, y1, x2, y2) for global bboxes
+            region_labels (str): list of optional region labels if bounding_boxes is a global array/list
+            imageid (str): name of imageid column in input file (if not present, bboxes will be treated as global)
+            regionid (str): name of regionid column in input file
+            sep (str): separator to use when reading files
+            bbox_cols: tuple of column names for ('left', 'top', 'right', 'bottom')
+            padding (int): optional bbox padding in pixels as ('left', 'top', 'right', 'bottom'),
+                or a single integer to specify equal padding on all sides
+        """
+        self.input_file = None
+        self.input_df = None
+
+        self._imageid = imageid
+        self._regionid = regionid
+        self._cols = bbox_cols
+
+        if type(padding) == int:
+            self.padding = (padding,) * 4
+        else:
+            self.padding = padding
+
+        if isinstance(bounding_boxes, DataFrame):
+            # Passed a DataFrame
+            bbox = bounding_boxes
+
+        elif type(bounding_boxes) == str:
+            # Passed a file name
+            try:
+                bbox = read_table(bounding_boxes, sep=sep)
+                self.input_file = bounding_boxes
+
+            except:
+                raise ValueError('String argument supplied to BBoxRegionSet, but not a valid CSV file!')
+
+        else:
+            # Try array type
+            try:
+                bbox = DataFrame(bounding_boxes, columns=['x1', 'y1', 'x2', 'y2'])
+            except:
+                raise ValueError('Supplied argument to BBoxRegionSet not in the form (x1, y1, x2, y2)')
+
+        (regions, labels) = self._parse_bbox_df(bbox, size, padding)
+        if region_labels is not None:
+            labels = region_labels
+
+        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=labels)
+
+        self.input_df = bbox
+
+
+    def _parse_bbox_df(self, df, size, padding):
+        """ Parse a DataFrame of bounding boxes into a region dict.
+
+        Args:
+            df (DataFrame): DataFrame of bounding box coordinates
+            size (tuple): image size as (width, height), to check for out-of-bounds coordinates
+            padding (int): padding in pixels as ('left', 'top', 'right', 'bottom'), default (0,0,0,0)
+
+        Returns:
+            tuple of dicts as (regions, labels), using imageids as keys. Resulting dicts can be
+            passed to RegionSet.__init__ directly.
+        """
+        regions = {}
+        labels = {}
+        _msize = (size[1], size[0])
+
+        if self._imageid in df.columns:
+            # Image-specific bounding boxes
+
+            # Force imageid to strings
+            df[self._imageid] = df[self._imageid].astype(str)
+
+            for imid, block in df.groupby(self._imageid):
+                N = block.shape[0]
+                reg = np.zeros((N,) + _msize, dtype=bool)
+                lab = []
+                bidx = 0
+
+                for idx,row in block.iterrows():
+                    c = [row[self._cols[0]], row[self._cols[1]], row[self._cols[2]], row[self._cols[3]]]
+
+                    if self._regionid in df.columns:
+                        l = row[self._regionid]
+                    else:
+                        l = str(bidx + 1)
+
+                    if c[0] > size[0] or c[2] > size[0] or c[1] > size[1] or c[3] > size[1]:
+                        err = 'At least one coordinate of region {:s}/{:s} exceeds the specified image size!'
+                        raise ValueError(err.format(imid, l))
+
+                    if c[2]-c[0] < 1 or c[3]-c[1] < 1:
+                        err = 'At least one dimension of {:s}/{:s} has a negative length! Columns specified in the wrong order?'
+                        raise ValueError(err.format(imid, l))
+
+                    # Add padding, ensuring padded bboxes are cropped to image size
+                    c = [c[0] - self.padding[0], c[1] - self.padding[1], c[2] + self.padding[2], c[3] + self.padding[3]]
+                    if c[0] < 0:
+                        c[0] = 0
+                    if c[1] < 0:
+                        c[1] = 0
+                    if c[2] > size[0]:
+                        c[2] = size[0]
+                    if c[3] > size[1]:
+                        c[3] = size[1]
+
+                    mask = np.zeros(_msize, dtype=bool)
+                    mask[c[1]:c[3], c[0]:c[2]] = True
+                    reg[bidx,...] = mask
+                    lab.append(l)
+                    bidx += 1
+
+                regions[imid] = reg
+                labels[imid] = lab
+
+        else:
+            # Global bounding boxes
+            reg = reg = np.zeros((df.shape[0], ) + _msize, dtype=bool)
+            lab = []
+
+            for idx,row in df.iterrows():
+                c = (row[self._cols[0]], row[self._cols[1]], row[self._cols[2]], row[self._cols[3]])
+
+                if self._regionid in df.columns:
+                    l = row[self._regionid]
+                else:
+                    l = str(idx + 1)
+
+                if c[0] > size[0] or c[2] > size[0] or c[1] > size[1] or c[3] > size[1]:
+                    err = 'At least one coordinate of region {:s} exceeds the specified image size!'
+                    raise ValueError(err.format(l))
+
+                mask = np.zeros(_msize, dtype=bool)
+                mask[c[1]:c[3], c[0]:c[2]] = True
+                reg[idx,...] = mask
+                lab.append(l)
+
+            regions = {'*': reg}
+            labels = {'*': lab}
+
+        return (regions, labels)
