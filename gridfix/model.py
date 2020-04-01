@@ -453,7 +453,7 @@ class Fixations(object):
 
     def __init__(self, data, imageset=None, offset=(0, 0), imageid='imageid', 
                  fixid='fixid', x='x', y='y', fixstart=None, fixend=None,
-                 numericid=False):
+                 fixdur=None, numericid=False):
         """ Create new Fixations dataset and calculate defaults.
 
         Args:
@@ -467,6 +467,8 @@ class Fixations(object):
             y (str): name of data file column for vertical fixation locations
             fixstart (str): name of data file column containing fixation start time
             fixend (str): name of data file column containing fixation end time
+            fixdur (start): name of column containing fixation durations. If start/end
+                are given but this is None, durations will be calculated by gridfix
             numericid (boolean): if True, try to force parsing imageid as numeric
         """
         self.data = DataFrame()
@@ -493,7 +495,7 @@ class Fixations(object):
         self._ypx = self._y + '_PX'
         self._fixstart = fixstart
         self._fixend = fixend
-        self._fixdur = '__FIXDUR'
+        self._fixdur = fixdur
 
         # Verify that all required columns are present
         cols = [imageid, fixid, x, y]
@@ -525,7 +527,11 @@ class Fixations(object):
             if fixend not in self.data.columns.values:
                 raise ValueError('Unknown column specified for fixation end time: "{:s}"'.format(fixend))
             self.has_times = True
-            self.data[self._fixdur] = self.data[self._fixend] - self.data[self._fixstart]
+
+            # Calculate fixation durations if no pre-computed column was specified
+            if self._fixdur is None:
+                self._fixdur = '__FIXDUR'
+                self.data[self._fixdur] = self.data[self._fixend] - self.data[self._fixstart]
         else:
             if (fixstart is None) - (fixend is None) != 0:
                 raise ValueError('Optional timing columns (fixstart, fixend) must be specified together!')
@@ -617,7 +623,7 @@ class Fixations(object):
 
         result = Fixations(selection.copy(), imageid=self._imageid, fixid=self._fixid,
                            x=self._x, y=self._y, imageset=self.imageset,
-                           fixstart=self._fixstart, fixend=self._fixend)
+                           fixstart=self._fixstart, fixend=self._fixend, fixdur=self._fixdur)
         return result
 
 
@@ -660,7 +666,7 @@ class Fixations(object):
 
         if oob:
             ax1.plot(plotfix.data[self._xpx], plotfix.data[self._ypx], plotformat)
-            if durations:
+            if durations and self._fixdur in plotfix.data.columns.to_list():
                 for r in plotfix.data.iterrows():
                     x = r[1][self._xpx]
                     if r[1][self._ypx] > 15:
@@ -681,7 +687,7 @@ class Fixations(object):
                                    (plotfix.data[self._ypx] >= 0) &
                                    (plotfix.data[self._ypx] < size[1])]
                 ax1.plot(fix[self._xpx], fix[self._ypx], plotformat)
-                if durations:
+                if durations and self._fixdur in plotfix.data.columns.to_list():
                     for r in fix.iterrows():
                         x = r[1][self._xpx]
                         if r[1][self._ypx] > 15:
@@ -777,10 +783,15 @@ class Fixations(object):
         Returns:
             2d ndarray of fixation durations at each pixel
         """
+
         if imageid is not None:
             mapfix = self.select_fix({self._imageid: imageid})
         else:
             mapfix = self
+
+        if not self._fixdur in mapfix.data.columns.to_list():
+            raise ValueError('Duration map is only available if dataset contains fixation durations!')
+
 
         if size is None:
             if self.imageset is not None:
