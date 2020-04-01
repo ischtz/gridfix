@@ -17,7 +17,7 @@ from pandas import __version__ as pandas_version
 from distutils.version import LooseVersion
 
 from scipy.io import whosmat, loadmat
-
+from scipy.signal import convolve
 
 class ImageSet(object):
     """ Set of images of equal size for masking and Feature creation. 
@@ -805,6 +805,102 @@ class Fixations(object):
         for r in fix.iterrows():
             durmap[r[1][self._ypx], r[1][self._xpx]] += r[1][self._fixdur]
         return durmap
+
+
+
+    def _gauss2d(self, size_x=100, sigma_x=10, size_y=None, sigma_y=None):
+        """ Create 2D Gaussian kernel for heat map visualizations
+
+        Args:
+            size_x, size_y (int): horizontal/vertical kernel size, in pixels
+            sigma_x, sigma_y (float): hor/vert kernel standard deviaton, in pixels
+
+        Returns:
+            2d ndarray containing Gaussian kernel
+        """
+        if size_y is None:
+            size_y = size_x
+        if sigma_y is None:
+            sigma_y = sigma_x
+
+        (xx, yy) = np.meshgrid(np.linspace(-size_y/2, size_y/2, size_y), np.linspace(-size_x/2, size_x/2, size_x))
+        G = np.exp(-1.0*(((xx*xx) / (2*sigma_x*sigma_x)) + ((yy*yy) / (2*sigma_y*sigma_y))))
+        return G
+
+
+
+    def heat_map(self, imageid=None, size=None, dur=False, convolution=True,
+                 size_x=100, sigma_x=10, size_y=None, sigma_y=None, normalize=False, threshold=None):
+        """ 2D heat map using convolution with a Gaussian kernel.
+            Best for fixations or samples in screen pixel coordinates.
+
+        Args:
+            imageid (str): optional image ID to create map for one image only
+            size (tuple): image dimensions, specified as (width, height).
+            convolution (bool): if False, use a sparse addition approch to calculate
+                heat map. Works if scipy is unavailable, faster if very few fixations
+            dur (bool): if True, weight heat map by fixation durations if available
+            size_x, size_y (int): horizontal/vertical kernel size, in pixels
+            sigma_x, sigma_y (float): hor/vert kernel standard deviaton, in pixels
+            normalize (bool): if True, return values in range 0..1
+            threshold (float): threshold map by masking output array at a given value
+        """
+        if size_y is None:
+            size_y = size_x
+        if sigma_y is None:
+            sigma_y = sigma_x
+
+        if dur and not self._fixdur in self.data.columns.to_list():
+            print('Warning: no fixation durations in dataset, cannot apply duration weighting (dur=True)')
+            dur = False
+
+        kernel = self._gauss2d(size_x, sigma_x, size_y, sigma_y)
+
+        if not convolution:
+            # Use manual sparse addition of kernels
+            if imageid is not None:
+                mapfix = self.select_fix({self._imageid: imageid})
+            else:
+                mapfix = self
+
+            if size is None:
+                if self.imageset is not None:
+                    size = self.imageset.size
+                else:
+                    raise ValueError('Image size or attached ImageSet are necessary for location mapping!')
+
+            hmap = np.zeros((size[1]+2*size_x, size[0]+2*size_y))
+            hwx = int(round(size_x/2))
+            hwy = int(round(size_y/2))
+
+            fix = mapfix.data[(self.data[self._xpx] >= 0) & (self.data[self._xpx] < size[0]) &
+                              (self.data[self._ypx] >= 0) & (self.data[self._ypx] < size[1])]
+            for r in fix.iterrows():
+                pos = (r[1][self._ypx], r[1][self._xpx])
+                xl = pos[1]+size_x-hwx
+                xr = pos[1]+size_x+hwx
+                yl = pos[0]+size_y-hwy
+                yr = pos[0]+size_y+hwy
+                if dur:
+                    hmap[yl:yr, xl:xr] += kernel * r[1][self._fixdur]
+                else:
+                    hmap[yl:yr, xl:xr] += kernel
+            heatmap = hmap[size_y:size[1]+size_y, size_x:size[0]+size_x]
+
+        else:
+            # Use scipy.signal.convolve (default)
+            if dur:
+                hmap = self.dur_map(imageid, size).astype(np.float64)
+            else:
+                hmap = self.count_map(imageid, size).astype(np.float64)
+            heatmap = convolve(hmap, kernel, mode='same')
+
+        if normalize:
+            heatmap = (heatmap-heatmap.min()) / (heatmap.max()-heatmap.min())
+        if threshold is not None:
+            heatmap = np.ma.masked_less_equal(heatmap, threshold)
+
+        return heatmap
 
 
 
