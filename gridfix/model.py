@@ -823,7 +823,7 @@ class Fixations(object):
         if sigma_y is None:
             sigma_y = sigma_x
 
-        (xx, yy) = np.meshgrid(np.linspace(-size_y/2, size_y/2, size_y), np.linspace(-size_x/2, size_x/2, size_x))
+        (xx, yy) = np.meshgrid(np.linspace(-size_x/2, size_x/2, size_x), np.linspace(-size_y/2, size_y/2, size_y))
         G = np.exp(-1.0*(((xx*xx) / (2*sigma_x*sigma_x)) + ((yy*yy) / (2*sigma_y*sigma_y))))
         return G
 
