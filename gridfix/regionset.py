@@ -226,11 +226,12 @@ class RegionSet(object):
         return msize
 
 
-    def count_map(self, imageid=None):
+    def count_map(self, imageid=None, ignore_background=True):
         """ Return the number of regions referencing each pixel.
 
         Args:
             imageid (str):  if set, return map for specified image only 
+            ignore_background (bool): if True, ignore auto-generated background region
 
         Returns:
             2d ndarray of image size, counting number of regions for each pixel
@@ -239,7 +240,9 @@ class RegionSet(object):
         cm = np.zeros(self._msize, dtype=int)
 
         if self.is_global:
-            for re in self._regions['*'][:, ...]:
+            for reidx, re in enumerate(self._regions['*'][:, ...]):
+                if ignore_background and self._labels['*'][reidx] == '__BG__':
+                    continue
                 cm += re.astype(int)
             return cm
 
@@ -247,59 +250,70 @@ class RegionSet(object):
             for imid in self._regions:
                 if imid == '*':
                     continue
-                for re in self._regions[imid][:, ...]:
+                for reidx, re in enumerate(self._regions[imid][:, ...]):
+                    if ignore_background and self._labels[imid][reidx] == '__BG__':
+                        continue
                     cm += re.astype(int)
 
         else:
             r = self._select_region(imageid)
-            for re in r[:, ...]:
+            l = self._select_labels(imageid)
+            for reidx, re in enumerate(r[:, ...]):
+                if ignore_background and l[reidx] == '__BG__':
+                    continue
                 cm += re.astype(int)
 
         return cm
 
     
-    def mask(self, imageid=None):
+    def mask(self, imageid=None, ignore_background=True):
         """ Return union mask of all regions or regions for specified image.
 
         Args:
             imageid (str):  if set, return mask for specified image only
+            ignore_background (bool): if True, ignore auto-generated background region
 
         Returns:
             2d ndarray of image size (bool), True where at least one region
             references the corresponding pixel.
         """
-        return self.count_map(imageid).astype(bool)
+        return self.count_map(imageid, ignore_background).astype(bool)
 
 
-    def region_map(self, imageid=None):
+    def region_map(self, imageid=None, ignore_background=True):
         """ Return map of region numbers, global or image-specifid.
 
         Args:
             imageid (str):  if set, return map for specified image only
+            ignore_background (bool): if True, ignore auto-generated background region
 
         Returns:
             2d ndarray (int), containing the number (ascending) of the last
             region referencing the corresponding pixel.
         """
         apply_regions = self._select_region(imageid)
+        apply_labels = self._select_labels(imageid)
         tmpmap = np.zeros(self._msize)
         for idx, region in enumerate(apply_regions):
+            if ignore_background and apply_labels[idx] == '__BG__':
+                continue
             tmpmap[region] = (idx + 1)
         return tmpmap
 
 
-    def coverage(self, imageid=None, normalize=False):
+    def coverage(self, imageid=None, normalize=False, ignore_background=True):
         """ Calculates coverage of the total image size as a scalar.
 
         Args:
             imageid (str):  if set, return coverage for specified image only 
             normalize (bool): if True, divide global result by number of imageids in set.
+            ignore_background (bool): if True, ignore auto-generated background region
 
         Returns:
             Total coverage as a floating point number.
         """
         if imageid is not None:
-            counts = self.count_map(imageid)
+            counts = self.count_map(imageid, ignore_background)
             cov = float(counts.sum()) / float(self.size[0] * self.size[1])
             return cov
         else:
@@ -307,9 +321,9 @@ class RegionSet(object):
             cm = np.zeros(self._msize, dtype=int)
             for re in self._regions.keys():
                 if re == '*':
-                    cm += self.count_map('*')
+                    cm += self.count_map('*', ignore_background)
                     break
-                cm += self.count_map(re)
+                cm += self.count_map(re, ignore_background)
 
             cov = float(cm.sum()) / float(self.size[0] * self.size[1])
             if normalize:
@@ -436,6 +450,9 @@ class RegionSet(object):
             rmeta = self.info[self.info.imageid == imageid]
 
         for idx, region in rmeta.iterrows():
+            if self.has_background and region.regionid == '__BG__':
+                # Always skip background region when drawing bboxes
+                continue
             c = boxcolors(cstep/len(rmeta))
             cstep += 1
             if not fill:
@@ -470,7 +487,7 @@ class RegionSet(object):
             return fig
 
 
-    def apply(self, image, imageid=None, crop=False):
+    def apply(self, image, imageid=None, crop=False, ignore_background=True):
         """ Apply this RegionSet to a specified image.
 
         Returns a list of the image arrays "cut out" by each region mask, with
@@ -481,30 +498,36 @@ class RegionSet(object):
             image (ndarray): image array to be segmented.
             imageid (str): valid imageid (to select image-specific regions if not a global regionset)
             crop (bool): if True, return image cropped to bounding box of selected area
-        
+            ignore_background (bool): if True, ignore auto-generated background region
+
         Returns:
             If crop=False, a list of ndarrays of same size as image, with non-selected areas
             zeroed. Else a list of image patch arrays cropped to bounding box size.
         """
         slices = []
         apply_regions = self._select_region(imageid)
+        apply_labels = self._select_labels(imageid)
 
-        for region in apply_regions:
+        for idx, region in enumerate(apply_regions):
+            if ignore_background and apply_labels[idx] == '__BG__':
+                continue
             mask = (region == True)
             out = np.zeros(image.shape)
             out[mask] = image[mask]
 
             if crop:
                 a = np.argwhere(out)
-                (ul_x, ul_y) = a.min(0)[0:2]
-                (br_x, br_y) = a.max(0)[0:2]
-                out = out[ul_x:br_x+1, ul_y:br_y+1]
+                if a.shape[0] > 0:
+                    (ul_x, ul_y) = a.min(0)[0:2]
+                    (br_x, br_y) = a.max(0)[0:2]
+                    out = out[ul_x:br_x+1, ul_y:br_y+1]
             slices.append(out)
 
         return slices
 
 
-    def export_patches(self, image, imageid=None, crop=True, image_format='png', rescale=False):
+    def export_patches(self, image, imageid=None, crop=True, image_format='png',
+                       rescale=False, ignore_background=True):
         """ Apply this RegionSet to an image array and save the resulting image patches as files.
 
         Saves an image of each image part "cut out" by each region mask, cropped by default.
@@ -517,21 +540,27 @@ class RegionSet(object):
             image_format (str): image format that PIL understands (will also be used for extension)
             rescale (bool): if True, scale pixel values to full 0..255 range
                 before saving (e.g., for saliency maps)
+            ignore_background (bool): if True, ignore auto-generated background region
+
         """
         apply_regions = self._select_region(imageid)
         apply_labels = self._select_labels(imageid)
         imstr = '{:s}_{:s}.{:s}'
 
         for idx, region in enumerate(apply_regions):
+            if ignore_background and apply_labels[idx] == '__BG__':
+                continue
+
             mask = (region == True)
             out = np.zeros(image.shape)
             out[mask] = image[mask]
 
             if crop:
                 a = np.argwhere(out)
-                (ul_x, ul_y) = a.min(0)[0:2]
-                (br_x, br_y) = a.max(0)[0:2]
-                out = out[ul_x:br_x+1, ul_y:br_y+1]
+                if a.shape[0] > 0:
+                    (ul_x, ul_y) = a.min(0)[0:2]
+                    (br_x, br_y) = a.max(0)[0:2]
+                    out = out[ul_x:br_x+1, ul_y:br_y+1]
 
             if imageid is None or imageid == '*':
                 imageid = 'image'
@@ -545,7 +574,7 @@ class RegionSet(object):
             rimg.save(imstr.format(str(imageid), str(apply_labels[idx]), image_format), image_format)
 
 
-    def export_patches_from_set(self, imageset, crop=True, image_format='png', rescale=False):
+    def export_patches_from_set(self, imageset, crop=True, image_format='png', rescale=False, ignore_background=True):
         """ Save all sliced image patches from an ImageSet as image files. 
 
         Saves an image of each image part "cut out" by each region mask, cropped by default.
@@ -558,6 +587,8 @@ class RegionSet(object):
             image_format (str): image format that PIL understands (will also be used for extension)
             rescale (bool): if True, scale pixel values to full 0..255 range
                 before saving (e.g., for saliency maps)
+            ignore_background (bool): if True, ignore auto-generated background region
+
         """
         if not isinstance(imageset, ImageSet):
             raise TypeError('First argument must be an ImageSet! To slice a single image, use export_patches().')
@@ -566,7 +597,8 @@ class RegionSet(object):
             if not self.is_global and cimg not in self.imageids:
                 print('Warning: RegionSet contains image-specific regions, but no regions available for {:s}. Skipped.'.format(cimg))
             else:
-                self.export_patches(imageset[cimg], imageid=cimg, crop=crop, image_format=image_format, rescale=rescale)
+                self.export_patches(imageset[cimg], imageid=cimg, crop=crop, image_format=image_format,
+                                    rescale=rescale, ignore_background=ignore_background)
             
 
     def fixated(self, fixations, imageid=None, count=False, exclude_first=False):
@@ -646,7 +678,7 @@ class GridRegionSet(RegionSet):
             print('Note: no grid size was specified. Using {:d}x{:d} based on image size.'.format(gridsize[0], gridsize[1]))
 
         (regions, cells) = self._grid(size, gridsize)
-        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=region_labels, 
+        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=region_labels,
                            add_background=False) # GridRegionSets are exhaustive, so the 'background' is empty.
 
         self.gridsize = gridsize
