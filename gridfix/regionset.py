@@ -32,7 +32,7 @@ class RegionSet(object):
         size (tuple): image dimensions, specified as (width, height).
     """
 
-    def __init__(self, size, regions, region_labels=None, label=None):
+    def __init__(self, size, regions, region_labels=None, label=None, add_background=False):
         """ Create a new RegionSet from existing region masks.
 
         Args:
@@ -42,6 +42,8 @@ class RegionSet(object):
             region_labels: list of region labels IF _regions_ is a single array
                 OR dict of such lists, with imageids as keys
             label (str): optional descriptive label for this RegionSet
+            add_background (bool): if True, this creates a special region to capture all
+                fixations that don't fall on an explicit region ("background" fixations)
 
         Raises:
             ValueError if incorrectly formatted regions/region_labels provided
@@ -52,6 +54,7 @@ class RegionSet(object):
         self.size = size
         self.label = label
         self._msize = (size[1], size[0])   # matrix convention
+        self.has_background = False
 
         if isinstance(regions, dict):
             # Dict with image-specific region ndarrays
@@ -82,6 +85,13 @@ class RegionSet(object):
         else:
             raise ValueError('First argument for RegionSet creation must be ndarray ' + 
                              '(global regions) or dict of ndarrays (image-specific regions)!')
+
+        if add_background:
+            for iid in self._regions.keys():
+                bgmask = ~self.mask(iid).reshape(1, size[1], size[0])
+                self._regions[iid] = np.concatenate([self._regions[iid], bgmask], axis=0)
+                self._labels[iid].append('__BG__')
+            self.has_background = True
 
         self.info = self._region_metadata()
 
@@ -148,12 +158,17 @@ class RegionSet(object):
 
             for i,l in enumerate(lab):
                 a = np.argwhere(reg[i])
-                (top, left) = a.min(0)[0:2]
-                (bottom, right) = a.max(0)[0:2]
+                if a.shape[0] > 0:
+                    (top, left) = a.min(0)[0:2]
+                    (bottom, right) = a.max(0)[0:2]
+                    (width, height) = (right-left+1, bottom-top+1)
+                    area = reg[i][reg[i] > 0].sum()
+                    imgfrac = round(area / (reg[i].shape[0] * reg[i].shape[1]), 4)
+                else:
+                    # Region is empty - shouldn't, but can happen with add_background at full coverage
+                    (top, left, bottom, right, width, height, area, imgfrac) = (0,) * 8
 
-                area = reg[i][reg[i] > 0].sum()
-                imgfrac = round(area / (reg[i].shape[0] * reg[i].shape[1]), 4)
-                rmeta = [imid, l, i+1, left, top, right, bottom, right-left+1, bottom-top+1, area, imgfrac]
+                rmeta = [imid, l, i+1, left, top, right, bottom, width, height, area, imgfrac]
                 info.append(rmeta)
 
         return DataFrame(info, columns=info_cols)
@@ -631,7 +646,8 @@ class GridRegionSet(RegionSet):
             print('Note: no grid size was specified. Using {:d}x{:d} based on image size.'.format(gridsize[0], gridsize[1]))
 
         (regions, cells) = self._grid(size, gridsize)
-        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=region_labels)
+        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=region_labels, 
+                           add_background=False) # GridRegionSets are exhaustive, so the 'background' is empty.
 
         self.gridsize = gridsize
 
@@ -731,7 +747,7 @@ class BBoxRegionSet(RegionSet):
 
     def __init__(self, size, bounding_boxes, label=None, region_labels=None, sep='\t',
                  imageid='imageid', regionid='regionid', bbox_cols=('x1', 'y1', 'x2', 'y2'),
-                 padding=0):
+                 padding=0, add_background=False):
         """ Create new BBoxRegionSet
 
         Args:
@@ -746,6 +762,9 @@ class BBoxRegionSet(RegionSet):
             bbox_cols: tuple of column names for ('left', 'top', 'right', 'bottom')
             padding (int): optional bbox padding in pixels as ('left', 'top', 'right', 'bottom'),
                 or a single integer to specify equal padding on all sides
+            add_background (bool): if True, this creates a special region to capture all
+                fixations that don't fall on an explicit region ("background" fixations)
+
         """
         self.input_file = None
         self.input_df = None
@@ -783,7 +802,7 @@ class BBoxRegionSet(RegionSet):
         if region_labels is not None:
             labels = region_labels
 
-        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=labels)
+        RegionSet.__init__(self, size=size, regions=regions, label=label, region_labels=labels, add_background=add_background)
 
         self.input_df = bbox
 
