@@ -904,6 +904,87 @@ class Fixations(object):
 
 
 
+    def assign_regions(self, regionset, regionno=True, col_prefix=None):
+        """ Assign each fixation the corresponding region from a RegionSet. New columns
+        are added directly to the Fixation object's underlying DataFrame.
+
+        Note: in case of overlapping regions, fixatiońs will be labeled as the higher
+        region number (likely the region which appeared later in the RegionSet input file)!
+
+        Args:
+            regionset: RegionSet object to match against (must contain same imageids)
+            regionno (bool): if True, add column for region number in addition to regionid string
+            col_prefix (str): name prefix for new column names
+        """
+
+        if not regionset.is_global and not all(iid in regionset.imageids for iid in self.imageids):
+            raise ValueError('At least one imageid was not found in the specified RegionSet!')
+
+        # Generate new unique column names using RegionSet label if available
+        idcol = 'regionid'
+        rcol = 'regionno'
+
+        if col_prefix is not None:
+            idcol = '{:s}_{:s}'.format(col_prefix, idcol)
+            rcol = '{:s}_{:s}'.format(col_prefix, rcol)
+        else:
+            if regionset.label is not None:
+                idcol = '{:s}_{:s}'.format(regionset.label, idcol)
+                rcol = '{:s}_{:s}'.format(regionset.label, rcol)
+
+        if idcol in self.data.columns:
+            idcol_num = idcol
+            num = 1
+            while idcol_num in self.data.columns:
+                idcol_num = '{:s}{:d}'.format(idcol, num)
+                num += 1
+            idcol = idcol_num
+
+        if regionno and rcol in self.data.columns:
+            rcol_num = rcol
+            num = 1
+            while rcol_num in self.data.columns:
+                rcol_num = '{:s}{:d}'.format(rcol, num)
+                num += 1
+            rcol = rcol_num
+
+        self.data.loc[:, idcol] = 'none'
+        if regionno:
+            self.data[rcol] = np.nan
+
+        # Filter for out-of-bounds fixations
+        valid_fix = ((self.data[self._xpx] >= 0) & (self.data[self._xpx] < regionset.size[0]) &
+                    (self.data[self._ypx] >= 0) & (self.data[self._ypx] < regionset.size[1]))
+
+        if regionset.is_global:
+            # Apply global region map to all fixation coordinates
+            rmap = regionset.region_map(imageid='*', ignore_background=False)
+
+            rnos = np.ones(self.data.shape[0]) * np.nan
+            rnos[valid_fix] = rmap[self.data.loc[valid_fix, self._ypx], self.data.loc[valid_fix,self._xpx]]
+            if regionno:
+                self.data.loc[:, rcol] = rnos
+
+            # Resolve regionids from DataFrame (not guaranteed to be sorted by regionno)
+            for rn in np.unique(rnos[~np.isnan(rnos)]):
+                self.data.loc[rnos == rn, idcol] = regionset.info.regionid[regionset.info.regionno == rn].values
+
+        else:
+            # Resolve regions for each imageid
+            for imid in self.imageids:
+                img_fix = valid_fix & (self.data[self._imageid] == imid)
+                rmap = regionset.region_map(imageid=imid, ignore_background=False)
+                rnos = np.ones(self.data.shape[0]) * np.nan
+                rnos[img_fix] = rmap[self.data.loc[img_fix, self._ypx], self.data.loc[img_fix,self._xpx]]
+
+                region_info = regionset.info[regionset.info.imageid == imid]
+                if regionno:
+                    self.data.loc[img_fix, rcol] = rnos[img_fix]
+                for rn in np.unique(rnos[~np.isnan(rnos)]):
+                    self.data.loc[img_fix & (rnos == rn), idcol] = region_info.regionid[region_info.regionno == rn].values
+
+
+
 class FixationModel(object):
     """ Combines Features and Fixations to create predictors and R source for GLMM
 
