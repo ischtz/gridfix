@@ -165,13 +165,13 @@ class ImageSet(object):
 
                         if imgfiles.shape[1] == 1:
                             # Only one column: assume no headers and load as list of filenames
-                            filelist = list(imgfiles.ix[:, 0])
+                            filelist = list(imgfiles.iloc[:, 0])
 
                         elif imgfiles.shape[1] > 1:
                             # More than one column: look for 'imageid' and 'filename' columns
-                            if 'imageid' in list(imgfiles.ix[0, :]) and 'filename' in list(imgfiles.ix[0, :]):
-                                imgfiles.columns = imgfiles.ix[0, :]
-                                imgfiles = imgfiles.ix[1:, :]
+                            if 'imageid' in list(imgfiles.iloc[0, :]) and 'filename' in list(imgfiles.iloc[0, :]):
+                                imgfiles.columns = imgfiles.iloc[0, :]
+                                imgfiles = imgfiles.iloc[1:, :]
                                 filelist = list(imgfiles['filename'])
                                 imageids = list(imgfiles['imageid'])
 
@@ -766,7 +766,7 @@ class Fixations(object):
         fixcount = np.zeros((size[1], size[0]), dtype=int)
         fix = mapfix.data[(self.data[self._xpx] >= 0) & (self.data[self._xpx] < size[0]) &
                           (self.data[self._ypx] >= 0) & (self.data[self._ypx] < size[1])]
-        fixloc = fix[[self._ypx, self._xpx]].as_matrix()
+        fixloc = fix[[self._ypx, self._xpx]].to_numpy()
         for pos in fixloc:
             fixcount[pos[0], pos[1]] += 1
         return fixcount
