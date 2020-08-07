@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
 
-from pandas import DataFrame
+from pandas import DataFrame, read_table
 from scipy.ndimage import center_of_mass    # for CentralBiasFeature
 from scipy.ndimage.filters import sobel     # for SobelEdgeFeature
 
@@ -540,3 +540,63 @@ class MapFeature(Feature):
         self.comb_fun = _combine
 
         Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+
+
+
+class RegionFeature(Feature):
+    """ Feature based on properties of the regions in a RegionSet. Allows to use
+        e.g. region area or fraction of image pixels as a model predictor.
+
+    Attributes:
+        region_property (str): column from DataFrame to return as region feature
+    """
+
+    def __init__(self, regionset, imageset, region_property='area', label=None):
+        """ Create a new RegionFeature
+
+        Args:
+            regionset: a RegionSet to be evaluated
+            imageset: ImageSet containing images or feature maps to process
+            region_property (str): column from DataFrame to return as region feature
+            label (str): optional label to distinguish between Features
+        """
+        if region_property not in regionset.info.columns:
+            raise ValueError('Specified region property is not a column in RegionSet.info DataFrame! Example: "area"')
+        self.region_property = region_property
+
+        def _transform(self, image):
+            """ Does nothing """
+            return image
+
+        def _combine(self, image, region):
+            """ Does nothing """
+            return None
+
+        self.trans_fun = _transform
+        self.comb_fun = _combine
+
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+
+
+    def apply(self, imageid, normalize=False):
+        """ Return selected region property of each region for specified imageid.
+
+        Args:
+            imageid (str): valid ID from associated ImageSet
+            normalize (bool): if True, scale output to range 0...1 (default: False)
+
+        Returns:
+            1D numpy.ndarray of feature values, same length as regionset
+        """
+        if self.regionset.is_global:
+            imageid = '*'
+        if imageid not in self.regionset._regions.keys():
+            raise ValueError('The imageid specified for RegionFeature was not found in the associated Imageset!')
+
+        sel_df = self.regionset.info[self.regionset.info.imageid == imageid]
+        if normalize:
+            f = np.array(sel_df[self.region_property])
+            return((f - f.min()) / (f.max() - f.min()))
+        else:
+            return np.array(sel_df[self.region_property])
+
