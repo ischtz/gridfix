@@ -337,7 +337,7 @@ class RegionSet(object):
         Args:
             imageid (str): if set, plot regions for specified image
             values (array-like): one feature value per region
-            cmap (str): name of matplotlib colormap to use
+            cmap (str): name of matplotlib colormap to use to distinguish regions
             image_only (boolean): if True, return only image content without axes
             ax (Axes): axes object to draw to, to include result in other figure
             alpha (float): opacity of plotted regions (set < 1 to visualize overlap)
@@ -360,9 +360,12 @@ class RegionSet(object):
             else:
                 cmap = 'gray'
 
+        if type(cmap) == 'str':
+            cmap = plt.get_cmap(cmap)
+
         if alpha < 1.0:
             # allow stacking by setting masked values transparent
-            alpha_cmap = plt.get_cmap(cmap)
+            alpha_cmap = cmap
             alpha_cmap.set_bad(alpha=0)
 
             ax1.imshow(tmpmap, cmap=plt.get_cmap('gray'), interpolation='none')
@@ -387,9 +390,9 @@ class RegionSet(object):
                 rmap = np.zeros(self._msize)
                 for idx, region in enumerate(apply_regions):
                     rmap[region] = values[idx]
-                ax1.imshow(np.ma.masked_equal(rmap, 0), cmap=plt.get_cmap(cmap), interpolation='none', vmin=0, vmax=np.nanmax(values))
+                ax1.imshow(np.ma.masked_equal(rmap, 0), cmap=cmap, interpolation='none', vmin=0, vmax=np.nanmax(values))
             else:
-                ax1.imshow(np.ma.masked_equal(self.region_map(imageid), 0), cmap=plt.get_cmap(cmap), interpolation='none', 
+                ax1.imshow(np.ma.masked_equal(self.region_map(imageid), 0), cmap=cmap, interpolation='none',
                            vmin=0, vmax=apply_regions.shape[0])
 
         if image_only:
@@ -407,14 +410,16 @@ class RegionSet(object):
             return fig
 
 
-    def plot_regions_on_image(self, imageid=None, imageset=None, cmap=None, fill=False,
-                              alpha=0.4, labels=False, image_only=False, ax=None):
+    def plot_regions_on_image(self, imageid=None, imageset=None, image_cmap=None, cmap=None, plotcolor=None, 
+                              fill=False, alpha=0.4, labels=False, image_only=False, ax=None):
         """ Plot region bounding boxes on corresponding image
 
         Args:
             imageid (str): if set, plot regions for specified image
             imageset (ImageSet): ImageSet object containing background image/map
-            cmap (str): name of matplotlib colormap to use for boundin boxes
+            image_cmap (str): name of matplotlib colormap to use for image
+            cmap (str): name of matplotlib colormap to use for bounding boxes
+            plotcolor (color): matplotlib color for bboxes (overrides colormap)
             fill (boolean): draw shaded filled rectangles instead of boxes
             alpha (float): rectangle opacity (only when fill=True)
             labels (boolean): if True, draw text labels next to regions
@@ -433,7 +438,12 @@ class RegionSet(object):
             fig = plt.figure()
             ax1 = fig.add_subplot(1,1,1)
 
-        ax1.imshow(imageset[imageid], cmap=plt.get_cmap('gray'), interpolation='none')
+        if image_cmap is not None:
+            if type(image_cmap) == 'str':
+                image_cmap = plt.get_cmap(image_cmap)
+            ax1.imshow(imageset[imageid], cmap=image_cmap, interpolation='none')
+        else:
+            ax1.imshow(imageset[imageid], interpolation='none')
 
         if cmap is None:
             if 'viridis' in plt.colormaps():
@@ -441,7 +451,10 @@ class RegionSet(object):
             else:
                 cmap = 'hsv'
 
-        boxcolors = plt.get_cmap(cmap)
+        if type(cmap) == 'str':
+            boxcolors = plt.get_cmap(cmap)
+        else:
+            boxcolors = cmap
         cstep = 0
 
         if self.is_global:
@@ -453,7 +466,10 @@ class RegionSet(object):
             if self.has_background and region.regionid == '__BG__':
                 # Always skip background region when drawing bboxes
                 continue
-            c = boxcolors(cstep/len(rmeta))
+            if plotcolor is None:
+                c = boxcolors(cstep/len(rmeta))
+            else:
+                c = plotcolor
             cstep += 1
             if not fill:
                 ax1.add_patch(Rectangle((region.left, region.top), region.width, region.height, color=c, fill=False, linewidth=2))

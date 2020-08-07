@@ -629,7 +629,8 @@ class Fixations(object):
 
 
     def plot(self, imageid=None, select={}, on_image=True, oob=False,
-             plotformat='wo', durations=False, image_only=False, ax=None):
+             plotformat='wo', plotsize=5.0, plotcolor=[1, 1, 1],
+             durations=False, image_only=False, ax=None):
         """ Plot fixations for selected imageid, either alone or on image
 
         Args:
@@ -638,6 +639,8 @@ class Fixations(object):
             image (bool): if True, superimpose fixations onto image (if ImageSet present)
             oob (bool): if True, include out-of-bounds fixations when plotting
             plotformat (str): format string for plt.pyplot.plot(), default: white circles
+            plotsize (float): fixation marker size
+            plotcolor (color): matplotlib color spec for markers
             durations (bool): if True, plot duration of each fixation next to marker
             image_only (boolean): if True, return only image content without labels
             ax (Axes): axes object to draw to, to include result in other figure
@@ -666,7 +669,8 @@ class Fixations(object):
             print('Warning: cannot view fixations on image due to missing ImageSet!')
 
         if oob:
-            ax1.plot(plotfix.data[self._xpx], plotfix.data[self._ypx], plotformat)
+            ax1.plot(plotfix.data[self._xpx], plotfix.data[self._ypx], plotformat,
+                     markersize=plotsize, color=plotcolor)
             if durations and self._fixdur in plotfix.data.columns.to_list():
                 for r in plotfix.data.iterrows():
                     x = r[1][self._xpx]
@@ -687,7 +691,8 @@ class Fixations(object):
                                    (plotfix.data[self._xpx] < size[0]) &
                                    (plotfix.data[self._ypx] >= 0) &
                                    (plotfix.data[self._ypx] < size[1])]
-                ax1.plot(fix[self._xpx], fix[self._ypx], plotformat)
+                ax1.plot(fix[self._xpx], fix[self._ypx], plotformat,
+                     markersize=plotsize, color=plotcolor)
                 if durations and self._fixdur in plotfix.data.columns.to_list():
                     for r in fix.iterrows():
                         x = r[1][self._xpx]
@@ -708,7 +713,8 @@ class Fixations(object):
 
             except AttributeError:
                 print('Warning: cannot filter fixations for image boundaries due to missing ImageSet!')
-                ax1.plot(plotfix[self._xpx], plotfix[self._ypx], plotformat)
+                ax1.plot(plotfix[self._xpx], plotfix[self._ypx], plotformat,
+                     markersize=plotsize, color=plotcolor)
                 ax1.invert_yaxis()
 
         if ax is None and not plt.isinteractive():  # see ImageSet.plot()
