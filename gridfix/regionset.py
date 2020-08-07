@@ -652,6 +652,108 @@ class RegionSet(object):
         return vis
 
 
+    def fixtimes(self, fixations, var='total', imageid=None, exclude_first=False):
+        """ Returns fixation-timing based variable for each region. Default is total viewing time.
+
+        Args:
+            fixations (Fixations/DataFrame): fixation data to test against regions
+            var (str): type of fixation time variable to calculate (default: 'total'):
+                'total': total fixation time for each region
+                'gaze': gaze duration, i.e. total fixation time in first pass
+                'first': first fixation duration per region
+                'single': fixation duration if region was fixated exactly once
+                'tofirst': start time of the first fixation on each region
+            imageid (str): imageid (to select image-specific regions if not a global regionset)
+            exclude_first (bool): if True, first fixated region will always be returned as NaN
+
+        Returns:
+            1D ndarray (float) containing fixation time based dependent variable for each region.
+            Regions that were never fixated according to criteria will be returned as NaN.
+        """
+        if var not in ['total', 'gaze', 'first', 'single', 'tofirst']:
+            raise ValueError('Unknown fixation time variable specified: {:s}'.format(var))
+
+        if not fixations.has_times:
+            raise AttributeError('Trying to extract a time-based DV from a dataset without fixation timing information! Specify fixstart=/fixend= when loading fixation data!')
+
+        apply_regions = self._select_region(imageid)
+        ft = np.ones(apply_regions.shape[0], dtype=float) * np.nan
+
+        # Drop out-of-bounds fixations
+        fix = fixations.data[(fixations.data[fixations._xpx] >= 0) &
+                             (fixations.data[fixations._xpx] < self.size[0]) &
+                             (fixations.data[fixations._ypx] >= 0) &
+                             (fixations.data[fixations._ypx] < self.size[1])]
+
+        if len(fix) > 0:
+            first_fix = fixations.data[fixations.data[fixations._fixid] == min(fixations.data[fixations._fixid])]
+            if len(first_fix) > 1 and exclude_first:
+                print('Warning: you have requested to drop the first fixated region, but more than one ' +
+                      'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
+                      'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
+
+            for (idx, roi) in enumerate(apply_regions):
+
+                if exclude_first:
+                    try:
+                        is_first = roi[first_fix[fixations._ypx], first_fix[fixations._xpx]]
+                        if isinstance(is_first, np.ndarray) and np.any(is_first):
+                            ft[idx] = np.nan
+                            continue
+                        elif is_first:
+                            ft[idx] = np.nan
+                            continue
+                    except IndexError:
+                        pass # first fixation is out of bounds for image!
+
+                fidx = roi[fix[fixations._ypx], fix[fixations._xpx]]
+                if np.any(fidx):
+                    rfix = fix[fidx]    # all fixations in this region
+
+                    if var == 'total':
+                        # Total viewing time including refixations
+                        ft[idx] = sum(rfix[fixations._fixdur])
+
+                    elif var == 'gaze':
+                        # Gaze duration: total viewing time of first pass only
+                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                        try:
+                            idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
+                            fp_end = idxdiff.where(idxdiff > 1).first_valid_index()
+                        except IndexError:
+                            fp_end = len(bystart)
+                        ft[idx] = sum(bystart.loc[bystart.index[0:fp_end], fixations._fixdur])
+
+                    elif var == 'first':
+                        # First fixation duration
+                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                        if len(bystart) > 0:
+                            ft[idx] = bystart.loc[bystart.index[0], fixations._fixdur]
+
+                    elif var == 'single':
+                        # Single fixation duration (=first fixation duration if not refixated in first pass)
+                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                        if len(bystart) > 0:
+                            ft[idx] = bystart.loc[bystart.index[0], fixations._fixdur]
+
+                            # If refixated on first pass, set to NaN instead
+                            try:
+                                idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
+                                fp_end = idxdiff.where(idxdiff > 1).first_valid_index()
+                            except IndexError:
+                                fp_end = len(bystart)
+                            if fp_end is not None and fp_end > 1:
+                                ft[idx] = np.nan
+
+                    elif var == 'tofirst':
+                        # Time until first fixation / first fixation onset
+                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                        if len(bystart) > 0:
+                            ft[idx] = bystart.loc[bystart.index[0], fixations._fixstart]
+
+        return ft
+
+
 
 class GridRegionSet(RegionSet):
     """ RegionSet defining an n-by-m regular grid covering the full image size.
