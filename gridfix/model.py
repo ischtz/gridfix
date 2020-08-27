@@ -1004,11 +1004,11 @@ class FixationModel(object):
         predictors (DataFrame): model predictors for GLMM
         regionset (RegionSet): attached RegionSet
         runtime (float): time in seconds for most recent update of predictor matrix
-        normalize_features (bool): if True, feature values are normalized to 0..1 range
+        normalize_features (bool): if True, all feature values are normalized to 0..1 range
     """
 
     def __init__(self, fixations, regionset, dv_type='fixated', features=None, feature_labels=None,
-                 chunks=[], progress=False, exclude_first_fix=False, normalize_features=False):
+                 chunks=[], progress=False, exclude_first_fix=False, normalize_features=None):
         """ Create a new FixationModel.
 
         Args:
@@ -1019,6 +1019,7 @@ class FixationModel(object):
                 'count': absolute fixation count for each region
                 'total': total fixation time for each region (NaN if not fixated)
                 'first': first fixation duration per region (NaN if not fixated)
+                'gaze': first-pass gaze duration per region (all initial fixations without refixations)
                 'single': fixation duration if region was fixated exactly once (NaN if not fixated)
                 'tofirst': start time of the first fixation on each region (NaN if not fixated)
             features (list): list of Feature objects to add (use add_comparison for feature groups)
@@ -1026,7 +1027,7 @@ class FixationModel(object):
             chunks (list): list of fixation data columns that define chunks (e.g., subjects or sessions)
             progress (bool): print current image and group variables to indicate model build progress
             exclude_first_fix (bool): if True, set first fixated region per image to NaN for GLMM
-            normalize_features (bool): if True, normalize feature values to 0..1 range
+            normalize_features (bool): if True, normalize all feature values to 0..1 range
         """
         self.regionset = regionset
 

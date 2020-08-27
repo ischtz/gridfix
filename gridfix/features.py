@@ -29,7 +29,7 @@ class Feature(object):
         length (int): length of feature vector, i.e. number of regions
     """
 
-    def __init__(self, regionset, imageset, trans_fun=None, comb_fun=None, label=None):
+    def __init__(self, regionset, imageset, trans_fun=None, comb_fun=None, label=None, normalize_output=False):
         """ Create a new basic Feature object.
 
         Args:
@@ -39,10 +39,12 @@ class Feature(object):
             comb_fun (function): Function to use for the reduction step instead of default.
                 Must accept a np.ndarray and return a scalar value.
             label (string): optional label to distinguish between Features of the same type
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
         """
         self.regionset = regionset
         self.imageset = imageset
         self.label = label
+        self.normalize_output = normalize_output
 
         self._fvalues = {}
 
@@ -70,7 +72,10 @@ class Feature(object):
         if self.label is not None:
             desc = ' "{:s}"'.format(str(self.label))
 
-        r = '<gridfix.{:s}{:s}, length={:d}>'.format(self.__class__.__name__, desc, len(self.regionset))
+        norm = ''
+        if self.normalize_output:
+            norm = ', normalized'
+        r = '<gridfix.{:s}{:s}, length={:d}{:s}>'.format(self.__class__.__name__, desc, len(self.regionset), norm)
         r += '\nRegions:\n\t{:s}'.format(str(self.regionset))
         r += '\nImages:\n\t{:s}'.format(str(self.imageset))
 
@@ -120,13 +125,12 @@ class Feature(object):
         return fun(np.asarray(image[region], dtype=float))
 
 
-    def apply(self, imageid, normalize=False):
+    def apply(self, imageid, normalize=None):
         """ Apply feature to a single image from associated ImageSet.
 
         Args:
             imageid (str): valid ID from associated ImageSet
             normalize (bool): if True, scale output to range 0...1 (default: False)
-
         Returns:
             1D numpy.ndarray of feature values, same length as regionset
         """
@@ -146,14 +150,21 @@ class Feature(object):
             # cache for later use
             self._fvalues[imageid] = np.array(fv)
 
-        if normalize:
-            f = self._fvalues[imageid]
+
+        f = self._fvalues[imageid]
+        if self.normalize_output:
+            # Feature set to always normalize
             return((f - f.min()) / (f.max() - f.min()))
+        elif normalize is not None:
+            if normalize:
+                # Upstream Model requested normalized values
+                return((f - f.min()) / (f.max() - f.min()))
         else:
-            return(self._fvalues[imageid])
+            # Default is to return unmodified values
+            return f
 
 
-    def apply_all(self, normalize=False):
+    def apply_all(self, normalize=None):
         """ Apply feature to every image in the ImageSet and return a DataFrame.
 
         Args:
@@ -183,6 +194,16 @@ class Feature(object):
             for idx,region in enumerate(self.regionset[img]):
                 f = self.combine(np.asarray(img_trans), np.asarray(region, dtype=bool))
                 df.loc[(df['imageid'] == img) & (df['region'] == str(l[idx])), 'value'] = f
+
+        # Normalize value column if requested
+        if self.normalize_output:
+            val = df.loc[:, 'value']
+            df.loc[:, 'value'] = (val - val.min()) / (val.max() - val.min())
+
+        elif normalize is not None:
+            if normalize:
+                val = df.loc[:, 'value']
+                df.loc[:, 'value'] = (val - val.min()) / (val.max() - val.min())
 
         return df
 
@@ -263,7 +284,7 @@ class CentralBiasFeature(Feature):
     2014, Vis Res is used and transform() returns the corresponding Gaussian map. 
     """
 
-    def __init__(self, regionset, imageset, measure='gaussian', sig2=0.23, nu=None, label=None):
+    def __init__(self, regionset, imageset, measure='gaussian', sig2=0.23, nu=None, label=None, normalize_output=False):
         """ Create a new CentralBiasFeature object.
 
         Args:
@@ -273,6 +294,7 @@ class CentralBiasFeature(Feature):
             sig2 (float): variance value for type='gaussian'
             nu (float): anisotropy value for type='gaussian'
             label (string): optional label to distinguish between Features
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
         """
         if measure not in ['gaussian', 'euclidean', 'taxicab']:
             print('Warning: unknown central bias measure "{:s}" specified, falling back to euclidean distance!'.format(measure))
@@ -330,10 +352,11 @@ class CentralBiasFeature(Feature):
         self._trans_fun = _transform
         self._comb_fun = _combine
 
-        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label,
+                         normalize_output=normalize_output)
 
 
-    def apply(self, imageid=None, normalize=False):
+    def apply(self, imageid=None, normalize=None):
         """ Apply central bias to image, returning region distance values.
 
         Args:
@@ -354,10 +377,17 @@ class CentralBiasFeature(Feature):
 
             self._values[imageid] = np.array(fv)
 
-        if normalize:
-            return (self._values[imageid] - self._values[imageid].min()) / (self._values[imageid].max() - self._values[imageid].min())
+        f = self._values[imageid]
+        if self.normalize_output:
+            # Feature set to always normalize
+            return((f - f.min()) / (f.max() - f.min()))
+        elif normalize is not None:
+            if normalize:
+                # Upstream Model requested normalized values
+                return((f - f.min()) / (f.max() - f.min()))
         else:
-            return self._values[imageid]
+            # Default is to return unmodified values
+            return f
 
 
     def __repr__(self):
@@ -403,16 +433,19 @@ class CentralBiasFeature(Feature):
         return 1 - G
 
 
+
 class LuminanceFeature(Feature):
     """ Models mean image luminance in each region """
 
-    def __init__(self, regionset, imageset, label=None):
+    def __init__(self, regionset, imageset, label=None, normalize_output=False):
         """ Create a new LuminanceFeature
         
         Args:
             regionset: a RegionSet to be evaluated
             imageset: ImageSet containing images or feature maps to process
             label (str): optional label to distinguish between Features
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
+
         """
 
         def _transform(self, image):
@@ -431,20 +464,22 @@ class LuminanceFeature(Feature):
         self.trans_fun = _transform
         self.comb_fun = _combine
 
-        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label,
+                         normalize_output=normalize_output)
 
 
 
 class LumContrastFeature(Feature):
     """ Feature based on local luminance contrast in each region """
 
-    def __init__(self, regionset, imageset, label=None):
+    def __init__(self, regionset, imageset, label=None, normalize_output=False):
         """ Create a new LuminanceContrastFeature
 
         Args:
             regionset: a RegionSet to be evaluated
             imageset: ImageSet containing images or feature maps to process
             label (str): optional label to distinguish between Features
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
         """
 
         def _transform(self, image):
@@ -463,20 +498,22 @@ class LumContrastFeature(Feature):
         self.trans_fun = _transform
         self.comb_fun = _combine
 
-        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label,
+                         normalize_output=normalize_output)
 
 
 
 class SobelEdgeFeature(Feature):
     """ Feature based on relative prevalence of edges within each region """
 
-    def __init__(self, regionset, imageset, label=None):
+    def __init__(self, regionset, imageset, label=None, normalize_output=False):
         """ Create a new SobelEdgeFeature
 
         Args:
             regionset: a RegionSet to be evaluated
             imageset: ImageSet containing images or feature maps to process
             label (str): optional label to distinguish between Features
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
         """
 
         def _transform(self, image):
@@ -506,7 +543,8 @@ class SobelEdgeFeature(Feature):
         self.trans_fun = _transform
         self.comb_fun = _combine
 
-        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label,
+                         normalize_output=normalize_output)
 
 
 
@@ -517,7 +555,7 @@ class MapFeature(Feature):
         stat (function): the statistics function to apply to each region
     """
 
-    def __init__(self, regionset, imageset, stat=np.mean, label=None):
+    def __init__(self, regionset, imageset, stat=np.mean, label=None, normalize_output=False):
         """ Create a new MapFeature
 
         Args:
@@ -525,6 +563,7 @@ class MapFeature(Feature):
             imageset: ImageSet containing images or feature maps to process
             stat (function): the statistics function to apply to each region
             label (str): optional label to distinguish between Features
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
         """
         self.stat = stat
 
@@ -539,7 +578,8 @@ class MapFeature(Feature):
         self.trans_fun = _transform
         self.comb_fun = _combine
 
-        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label,
+                         normalize_output=normalize_output)
 
 
 
@@ -551,7 +591,7 @@ class RegionFeature(Feature):
         region_property (str): column from DataFrame to return as region feature
     """
 
-    def __init__(self, regionset, imageset, region_property='area', label=None):
+    def __init__(self, regionset, imageset, region_property='area', label=None, normalize_output=False):
         """ Create a new RegionFeature
 
         Args:
@@ -559,6 +599,7 @@ class RegionFeature(Feature):
             imageset: ImageSet containing images or feature maps to process
             region_property (str): column from DataFrame to return as region feature
             label (str): optional label to distinguish between Features
+            normalize_output (bool): if True, always normalize output values of this feature to 0..1
         """
         if region_property not in regionset.info.columns:
             raise ValueError('Specified region property is not a column in RegionSet.info DataFrame! Example: "area"')
@@ -575,10 +616,11 @@ class RegionFeature(Feature):
         self.trans_fun = _transform
         self.comb_fun = _combine
 
-        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label)
+        Feature.__init__(self, regionset, imageset, trans_fun=_transform, comb_fun=_combine, label=label,
+                         normalize_output=normalize_output)
 
 
-    def apply(self, imageid, normalize=False):
+    def apply(self, imageid, normalize=None):
         """ Return selected region property of each region for specified imageid.
 
         Args:
@@ -594,9 +636,18 @@ class RegionFeature(Feature):
             raise ValueError('The imageid specified for RegionFeature was not found in the associated Imageset!')
 
         sel_df = self.regionset.info[self.regionset.info.imageid == imageid]
-        if normalize:
-            f = np.array(sel_df[self.region_property])
+
+        f = np.array(sel_df[self.region_property])
+        if self.normalize_output:
+            # Feature set to always normalize
             return((f - f.min()) / (f.max() - f.min()))
+        elif normalize is not None:
+            if normalize:
+                # Upstream Model requested normalized values
+                return((f - f.min()) / (f.max() - f.min()))
         else:
-            return np.array(sel_df[self.region_property])
+            # Default is to return unmodified values
+            return f
+
+
 
