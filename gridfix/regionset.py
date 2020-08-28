@@ -897,7 +897,7 @@ class BBoxRegionSet(RegionSet):
 
     def __init__(self, size, bounding_boxes, label=None, region_labels=None, sep='\t',
                  imageid='imageid', regionid='regionid', bbox_cols=('x1', 'y1', 'x2', 'y2'),
-                 padding=0, add_background=False):
+                 padding=0, add_background=False, coord_format=None):
         """ Create new BBoxRegionSet
 
         Args:
@@ -914,7 +914,11 @@ class BBoxRegionSet(RegionSet):
                 or a single integer to specify equal padding on all sides
             add_background (bool): if True, this creates a special region to capture all
                 fixations that don't fall on an explicit region ("background" fixations)
-
+            coord_format (str): Defines how input x and y coordinates are interpreted:
+                'oneindexed': coordinates start at 1, e.g. 1..100 for a 100px box
+                'zeroindexed': coordinates start at 0, e.g. 0..99 for a 100px box
+                'apple': coordinates start at 0, but end at <size>, e.g. 0..100 for a 100px box,
+                         in this convention, the pixels sit "between" coordinate values
         """
         self.input_file = None
         self.input_df = None
@@ -922,6 +926,13 @@ class BBoxRegionSet(RegionSet):
         self._imageid = imageid
         self._regionid = regionid
         self._cols = bbox_cols
+
+        if coord_format is None:
+            err = 'No coordinate format specified! Please provide coord_format argument:\n'
+            err += '"oneindexed": coordinates start at 1, e.g. 1..100 for a 100px box\n'
+            err += '"zeroindexed": coordinates start at 0, e.g. 0..99 for a 100px box\n'
+            err += '"apple": coordinates start at 0, but end at <size>, e.g. 0..100 for a 100px box.'
+            raise ValueError(err)
 
         if type(padding) == int:
             self.padding = (padding,) * 4
@@ -948,7 +959,7 @@ class BBoxRegionSet(RegionSet):
             except:
                 raise ValueError('Supplied argument to BBoxRegionSet not in the form (x1, y1, x2, y2)')
 
-        (regions, labels) = self._parse_bbox_df(bbox, size, padding)
+        (regions, labels) = self._parse_bbox_df(bbox, size, padding, coord_format=coord_format)
         if region_labels is not None:
             labels = region_labels
 
@@ -957,13 +968,14 @@ class BBoxRegionSet(RegionSet):
         self.input_df = bbox
 
 
-    def _parse_bbox_df(self, df, size, padding):
+    def _parse_bbox_df(self, df, size, padding, coord_format='oneindexed'):
         """ Parse a DataFrame of bounding boxes into a region dict.
 
         Args:
             df (DataFrame): DataFrame of bounding box coordinates
             size (tuple): image size as (width, height), to check for out-of-bounds coordinates
             padding (int): padding in pixels as ('left', 'top', 'right', 'bottom'), default (0,0,0,0)
+            coord_format (str): Defines how input x and y coordinates are interpreted (see __init__)
 
         Returns:
             tuple of dicts as (regions, labels), using imageids as keys. Resulting dicts can be
@@ -986,12 +998,30 @@ class BBoxRegionSet(RegionSet):
                 bidx = 0
 
                 for idx,row in block.iterrows():
+                    # left, top, right, bottom
                     c = [row[self._cols[0]], row[self._cols[1]], row[self._cols[2]], row[self._cols[3]]]
 
                     if self._regionid in df.columns:
                         l = row[self._regionid]
                     else:
                         l = str(bidx + 1)
+
+                    # Convert coordinates to Python indices
+                    if coord_format.lower() == 'oneindexed':
+                        c = [round(c[0]) - 1,   # Correct lower bounds
+                             round(c[1]) - 1,
+                             round(c[2]),
+                             round(c[3])]
+                    elif coord_format.lower() == 'zeroindexed':
+                        c = [round(c[0]),
+                             round(c[1]),
+                             round(c[2]) + 1,   # Python slices are end-excluding,
+                             round(c[3]) + 1]   # i.e. [a, b] does not include b
+                    elif coord_format.lower() == 'apple':
+                        c = [round(c[0]),       # Just round, format is already fine
+                             round(c[1]),
+                             round(c[2]),
+                             round(c[3])]
 
                     if c[0] > size[0] or c[2] > size[0] or c[1] > size[1] or c[3] > size[1]:
                         err = 'At least one coordinate of region {:s}/{:s} exceeds the specified image size!'
@@ -1033,6 +1063,23 @@ class BBoxRegionSet(RegionSet):
                     l = row[self._regionid]
                 else:
                     l = str(idx + 1)
+
+                # Convert coordinates to Python indices
+                if coord_format.lower() == 'oneindexed':
+                    c = [round(c[0]) - 1,   # Correct lower bounds
+                         round(c[1]) - 1,
+                         round(c[2]),
+                         round(c[3])]
+                elif coord_format.lower() == 'zeroindexed':
+                    c = [round(c[0]),
+                         round(c[1]),
+                         round(c[2]) + 1,   # Python slices are end-excluding,
+                         round(c[3]) + 1]   # i.e. [a, b] does not include b
+                elif coord_format.lower() == 'apple':
+                    c = [round(c[0]),       # Just round, format is already fine
+                         round(c[1]),
+                         round(c[2]),
+                         round(c[3])]
 
                 if c[0] > size[0] or c[2] > size[0] or c[1] > size[1] or c[3] > size[1]:
                     err = 'At least one coordinate of region {:s} exceeds the specified image size!'
