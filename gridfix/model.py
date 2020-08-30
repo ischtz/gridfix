@@ -454,7 +454,7 @@ class Fixations(object):
 
     def __init__(self, data, imageset=None, offset=(0, 0), imageid='imageid', 
                  fixid='fixid', x='x', y='y', fixstart=None, fixend=None,
-                 fixdur=None, numericid=False):
+                 fixdur=None, numericid=False, round_coords=True):
         """ Create new Fixations dataset and calculate defaults.
 
         Args:
@@ -471,6 +471,9 @@ class Fixations(object):
             fixdur (start): name of column containing fixation durations. If start/end
                 are given but this is None, durations will be calculated by gridfix
             numericid (boolean): if True, try to force parsing imageid as numeric
+            round_coords (boolean): How to treat float values in fixation coordinates:
+                if True, round values to closest pixel (e.g., x=4.4 -> pixel 4 / index 3)
+                if False, round values up to next integer (x=4.4 -> pixel 5 / index 4)
         """
         self.data = DataFrame()
 
@@ -550,6 +553,7 @@ class Fixations(object):
 
         # Set offset and calculate pixel indices (_xpx, _ypx)
         self.offset = (0, 0)
+        self.round_coords = round_coords
         self.set_offset(offset)
         
 
@@ -590,10 +594,14 @@ class Fixations(object):
         self.data[self._y] = self.data[self._y] + offset[1]
         self.offset = (offset[0], offset[1])
 
-        # Round x/y fixation positions to integers (pixels) while keeping original data
+        # Convert x/y fixation positions to integers (pixels) while keeping original data
         # Note: we're going to use these as indices and Python is 0-indexed, so subtract 1!
-        self.data[self._xpx] = np.asarray(np.round(self.data[self._x]), dtype=int) - 1
-        self.data[self._ypx] = np.asarray(np.round(self.data[self._y]), dtype=int) - 1
+        if self.round_coords:
+            self.data[self._xpx] = np.asarray(np.round(self.data[self._x]), dtype=int) - 1
+            self.data[self._ypx] = np.asarray(np.round(self.data[self._y]), dtype=int) - 1
+        else:
+            self.data[self._xpx] = np.asarray(np.ceil(self.data[self._x]), dtype=int) - 1
+            self.data[self._ypx] = np.asarray(np.ceil(self.data[self._y]), dtype=int) - 1
 
 
     def select_fix(self, select={}):
@@ -624,7 +632,8 @@ class Fixations(object):
 
         result = Fixations(selection.copy(), imageid=self._imageid, fixid=self._fixid,
                            x=self._x, y=self._y, imageset=self.imageset,
-                           fixstart=self._fixstart, fixend=self._fixend, fixdur=self._fixdur)
+                           fixstart=self._fixstart, fixend=self._fixend, fixdur=self._fixdur,
+                           offset=self.offset, round_coords=self.round_coords)
         return result
 
 
