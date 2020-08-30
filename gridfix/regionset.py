@@ -733,12 +733,13 @@ class RegionSet(object):
                     elif var == 'gaze':
                         # Gaze duration: total viewing time of first pass only
                         bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
-                        try:
-                            idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
-                            fp_end = idxdiff.where(idxdiff > 1).first_valid_index()
-                        except IndexError:
-                            fp_end = len(bystart)
-                        ft[idx] = sum(bystart.loc[bystart.index[0:fp_end], fixations._fixdur])
+                        if len(bystart) > 0:
+                            try:
+                                idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
+                                fp_end = idxdiff.where(idxdiff > 1).first_valid_index()
+                            except IndexError:
+                                fp_end = len(bystart)
+                            ft[idx] = sum(bystart.loc[bystart.index[0:fp_end], fixations._fixdur])
 
                     elif var == 'first':
                         # First fixation duration
