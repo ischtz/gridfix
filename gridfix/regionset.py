@@ -360,7 +360,7 @@ class RegionSet(object):
             else:
                 cmap = 'gray'
 
-        if type(cmap) == 'str':
+        if type(cmap) == str:
             cmap = plt.get_cmap(cmap)
 
         if alpha < 1.0:
@@ -439,7 +439,7 @@ class RegionSet(object):
             ax1 = fig.add_subplot(1,1,1)
 
         if image_cmap is not None:
-            if type(image_cmap) == 'str':
+            if type(image_cmap) == str:
                 image_cmap = plt.get_cmap(image_cmap)
             ax1.imshow(imageset[imageid], cmap=image_cmap, interpolation='none')
         else:
@@ -451,7 +451,7 @@ class RegionSet(object):
             else:
                 cmap = 'hsv'
 
-        if type(cmap) == 'str':
+        if type(cmap) == str:
             boxcolors = plt.get_cmap(cmap)
         else:
             boxcolors = cmap
