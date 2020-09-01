@@ -617,7 +617,7 @@ class RegionSet(object):
                                     rescale=rescale, ignore_background=ignore_background)
             
 
-    def fixated(self, fixations, imageid=None, count=False, exclude_first=False):
+    def fixated(self, fixations, imageid=None, count=False, exclude_first=False, exclude_last=False):
         """ Returns visited / fixated regions using data from a Fixations object.
 
         Args:
@@ -625,6 +625,7 @@ class RegionSet(object):
             imageid (str): imageid (to select image-specific regions if not a global regionset)
             count (bool): if True, return number of fixations per region instead of boolean values
             exclude_first (bool): if True, first fixated region will always be returned as NaN
+            exclude_last (bool): if True, last fixated region will always be returned as NaN
 
         Returns:
             1D ndarray (float) containing number of fixations per region (if count=True) 
@@ -640,11 +641,18 @@ class RegionSet(object):
                              (fixations.data[fixations._ypx] < self.size[1])]
     
         if len(fix) > 0:
-            first_fix = fixations.data[fixations.data[fixations._fixid] == min(fixations.data[fixations._fixid])]
-            if len(first_fix) > 1 and exclude_first:
-                print('Warning: you have requested to drop the first fixated region, but more than one ' +
-                      'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
-                      'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
+            if exclude_first:
+                first_fix = fixations.data[fixations.data[fixations._fixid] == min(fixations.data[fixations._fixid])]
+                if len(first_fix) > 1:
+                    print('Warning: you have requested to drop the first fixated region, but more than one ' +
+                          'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
+                          'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
+            if exclude_last:
+                last_fix = fixations.data[fixations.data[fixations._fixid] == max(fixations.data[fixations._fixid])]
+                if len(last_fix) > 1:
+                    print('Warning: you have requested to drop the last fixated region, but more than one ' +
+                          'location ({:d}) matches the highest fixation ID! Either your fixation ' .format(len(last_fix)) +
+                          'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
 
             for (idx, roi) in enumerate(apply_regions):
                 fv = roi[fix[fixations._ypx], fix[fixations._xpx]]
@@ -661,6 +669,17 @@ class RegionSet(object):
                             vis[idx] = np.nan
                     except IndexError:
                         pass # first fixation is out of bounds for image!
+
+                if exclude_last:
+                    try:
+                        is_last = roi[last_fix[fixations._ypx], last_fix[fixations._xpx]]
+                        if isinstance(is_last, np.ndarray) and np.any(is_last):
+                            vis[idx] = np.nan
+                        elif is_last:
+                            vis[idx] = np.nan
+                    except IndexError:
+                        pass # last fixation is out of bounds for image!
+
         if not count:
             vis[vis >= 1.0] = 1.0
             vis[vis < 1.0] = 0.0
@@ -668,7 +687,7 @@ class RegionSet(object):
         return vis
 
 
-    def fixtimes(self, fixations, var='total', imageid=None, exclude_first=False):
+    def fixtimes(self, fixations, var='total', imageid=None, exclude_first=False, exclude_last=False):
         """ Returns fixation-timing based variable for each region. Default is total viewing time.
 
         Args:
@@ -681,6 +700,7 @@ class RegionSet(object):
                 'tofirst': start time of the first fixation on each region
             imageid (str): imageid (to select image-specific regions if not a global regionset)
             exclude_first (bool): if True, first fixated region will always be returned as NaN
+            exclude_last (bool): if True, last fixated region will always be returned as NaN
 
         Returns:
             1D ndarray (float) containing fixation time based dependent variable for each region.
@@ -702,14 +722,21 @@ class RegionSet(object):
                              (fixations.data[fixations._ypx] < self.size[1])]
 
         if len(fix) > 0:
-            first_fix = fixations.data[fixations.data[fixations._fixid] == min(fixations.data[fixations._fixid])]
-            if len(first_fix) > 1 and exclude_first:
-                print('Warning: you have requested to drop the first fixated region, but more than one ' +
-                      'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
-                      'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
+            if exclude_first:
+                first_fix = fixations.data[fixations.data[fixations._fixid] == min(fixations.data[fixations._fixid])]
+                if len(first_fix) > 1:
+                    print('Warning: you have requested to drop the first fixated region, but more than one ' +
+                          'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
+                          'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
+
+            if exclude_last:
+                last_fix = fixations.data[fixations.data[fixations._fixid] == max(fixations.data[fixations._fixid])]
+                if len(last_fix) > 1:
+                    print('Warning: you have requested to drop the last fixated region, but more than one ' +
+                          'location ({:d}) matches the highest fixation ID! Either your fixation ' .format(len(last_fix)) +
+                          'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
 
             for (idx, roi) in enumerate(apply_regions):
-
                 if exclude_first:
                     try:
                         is_first = roi[first_fix[fixations._ypx], first_fix[fixations._xpx]]
@@ -717,6 +744,18 @@ class RegionSet(object):
                             ft[idx] = np.nan
                             continue
                         elif is_first:
+                            ft[idx] = np.nan
+                            continue
+                    except IndexError:
+                        pass # first fixation is out of bounds for image!
+
+                if exclude_last:
+                    try:
+                        is_last = roi[last_fix[fixations._ypx], last_fix[fixations._xpx]]
+                        if isinstance(is_last, np.ndarray) and np.any(is_last):
+                            ft[idx] = np.nan
+                            continue
+                        elif is_last:
                             ft[idx] = np.nan
                             continue
                     except IndexError:

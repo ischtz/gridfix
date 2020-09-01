@@ -1008,7 +1008,8 @@ class FixationModel(object):
         chunks (list): list of data columns that define chunks (e.g., subjects or sessions)
         comp_features (dict): dict of labelled feature comparisons. Predictors will be replicated
             for each feature in a comparison so that features can serve as fixed or random factor
-        exclude_first_fix (boolean): if True, first fixation index was set NaN (e.g.,, fixation cross)
+        exclude_first_fix (boolean): if True, first fixation index was set NaN (e.g., fixation cross)
+        exclude_last_fix (boolean): if True, last fixation index was set NaN (e.g., image offset)
         features (dict): dictionary of feature objects and feature groups
         predictors (DataFrame): model predictors for GLMM
         regionset (RegionSet): attached RegionSet
@@ -1017,7 +1018,8 @@ class FixationModel(object):
     """
 
     def __init__(self, fixations, regionset, dv_type='fixated', features=None, feature_labels=None,
-                 chunks=[], progress=False, exclude_first_fix=False, normalize_features=None):
+                 chunks=[], progress=False, exclude_first_fix=False, exclude_last_fix=False,
+                 normalize_features=None):
         """ Create a new FixationModel.
 
         Args:
@@ -1036,6 +1038,7 @@ class FixationModel(object):
             chunks (list): list of fixation data columns that define chunks (e.g., subjects or sessions)
             progress (bool): print current image and group variables to indicate model build progress
             exclude_first_fix (bool): if True, set first fixated region per image to NaN for GLMM
+            exclude_last_fix (bool): if True, set last fixated region per image to NaN for GLMM
             normalize_features (bool): if True, normalize all feature values to 0..1 range
         """
         self.regionset = regionset
@@ -1048,6 +1051,7 @@ class FixationModel(object):
         self.comp_features = {}
         self.normalize_features = normalize_features
         self.exclude_first_fix = exclude_first_fix
+        self.exclude_last_fix = exclude_last_fix
 
         # Supported DVs: labels and other model parameters
         self._dvs = {'fixated': {'f':'c', 'rvar': 'dvFix',    'fun': 'glmer', 'family': 'binomial'},
@@ -1300,13 +1304,16 @@ class FixationModel(object):
                     if self._dvs[dv]['f'] == 'c':
                         # Fixation count based measures
                         if dv == 'fixated':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix)
+                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix,
+                                                                                  exclude_last=self.exclude_last_fix)
                         if dv == 'count':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix, count=True)
+                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix,
+                                                                                  exclude_last=self.exclude_last_fix, count=True)
 
                     if self._dvs[dv]['f'] == 't' and subset.has_times:
                         # Fixation time based measures
-                        tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixtimes(subset, var=dv, imageid=imageid, exclude_first=self.exclude_first_fix)
+                        tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixtimes(subset, var=dv, imageid=imageid, exclude_first=self.exclude_first_fix,
+                                                                                  exclude_last=self.exclude_last_fix)
 
             # Simple per-image features
             for feat_col, feat in self.features.items():
