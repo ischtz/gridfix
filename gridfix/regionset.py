@@ -617,13 +617,16 @@ class RegionSet(object):
                                     rescale=rescale, ignore_background=ignore_background)
             
 
-    def fixated(self, fixations, imageid=None, count=False, exclude_first=False, exclude_last=False):
+    def fixated(self, fixations, var='fixated', imageid=None, exclude_first=False, exclude_last=False):
         """ Returns visited / fixated regions using data from a Fixations object.
 
         Args:
             fixations (Fixations/DataFrame): fixation data to test against regions
+            var (str): type of fixation mapping variable to calculate (default: 'fixated'):
+                'fixated': fixation status: 0 - region was not fixated, 1 - fixated (default)
+                'count': total number of fixations on each region
+                'fixid': fixation ID (from input dataset) for first fixation in each region
             imageid (str): imageid (to select image-specific regions if not a global regionset)
-            count (bool): if True, return number of fixations per region instead of boolean values
             exclude_first (bool): if True, first fixated region will always be returned as NaN
             exclude_last (bool): if True, last fixated region will always be returned as NaN
 
@@ -657,8 +660,21 @@ class RegionSet(object):
             for (idx, roi) in enumerate(apply_regions):
                 fv = roi[fix[fixations._ypx], fix[fixations._xpx]]
                 if isinstance(fv, np.ndarray):
-                    num_fix = sum(fv)
-                    vis[idx] = num_fix
+
+                    if var == 'count':
+                        vis[idx] = sum(fv)
+
+                    elif var == 'fixated':
+                        vis[idx] = (sum(fv) >= 1.0)
+
+                    elif var == 'fixid':
+                        rfix = fix[fv] # All fixations on region
+                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                        if len(bystart) > 0:
+                            # Return first valid fixation ID
+                            vis[idx] = bystart.loc[bystart.index[0], fixations._fixid]
+                        else:
+                            vis[idx] = np.nan
 
                 if exclude_first:
                     try:
@@ -679,10 +695,6 @@ class RegionSet(object):
                             vis[idx] = np.nan
                     except IndexError:
                         pass # last fixation is out of bounds for image!
-
-        if not count:
-            vis[vis >= 1.0] = 1.0
-            vis[vis < 1.0] = 0.0
 
         return vis
 

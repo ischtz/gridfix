@@ -1028,6 +1028,7 @@ class FixationModel(object):
             dv_type (str): type of DV to generate, or list of multiple options:
                 'fixated': binary coding of fixated (1) and unfixated (0) regions
                 'count': absolute fixation count for each region
+                'fixid': fixation ID of the first valid fixation within each region (NaN if not fixated)
                 'total': total fixation time for each region (NaN if not fixated)
                 'first': first fixation duration per region (NaN if not fixated)
                 'gaze': first-pass gaze duration per region (all initial fixations without refixations)
@@ -1056,6 +1057,7 @@ class FixationModel(object):
         # Supported DVs: labels and other model parameters
         self._dvs = {'fixated': {'f':'c', 'rvar': 'dvFix',    'fun': 'glmer', 'family': 'binomial'},
                      'count':   {'f':'c', 'rvar': 'dvCount',  'fun': 'glmer', 'family': 'poisson'},
+                     'fixid':   {'f':'c', 'rvar': 'fixID',    'fun': None,    'family': None},
                      'first':   {'f':'t', 'rvar': 'dvFirst',  'fun': 'lmer',  'family': None},
                      'gaze':    {'f':'t', 'rvar': 'dvGaze',   'fun': 'lmer',  'family': None},
                      'tofirst': {'f':'t', 'rvar': 'dvToFirst','fun': 'lmer',  'family': None},
@@ -1255,6 +1257,10 @@ class FixationModel(object):
         # GLMM model call(s) - one per requested DV
         models = []
         for current_dv in self.dv_type:
+            if self._dvs[current_dv]['fun'] is None:
+                # Don't generate R code for a DV with no model function specified
+                continue
+
             models.append('model.{:s}'.format(current_dv))
 
             if comments:
@@ -1304,11 +1310,14 @@ class FixationModel(object):
                     if self._dvs[dv]['f'] == 'c':
                         # Fixation count based measures
                         if dv == 'fixated':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix,
+                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var='fixated', imageid=imageid, exclude_first=self.exclude_first_fix,
                                                                                   exclude_last=self.exclude_last_fix)
                         if dv == 'count':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, imageid=imageid, exclude_first=self.exclude_first_fix,
-                                                                                  exclude_last=self.exclude_last_fix, count=True)
+                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var='count', imageid=imageid, exclude_first=self.exclude_first_fix,
+                                                                                  exclude_last=self.exclude_last_fix)
+                        if dv == 'fixid':
+                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var='fixid', imageid=imageid, exclude_first=self.exclude_first_fix,
+                                                                                  exclude_last=self.exclude_last_fix)
 
                     if self._dvs[dv]['f'] == 't' and subset.has_times:
                         # Fixation time based measures
