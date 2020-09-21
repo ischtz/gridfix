@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='gridfix',
-      version='0.2',
+      version='0.3',
       description='Parcellation-based fixation preprocessing for GLMM',
       url='https://github.com/ischtz/gridfix',
       author='Immo Schuetz',

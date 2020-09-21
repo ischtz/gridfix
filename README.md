@@ -14,10 +14,11 @@ GridFix is a Python 3 toolbox to facilitate preprocessing of scene fixation data
 ## Features
 - Define image parcellations (region masks) based on a grid or bounding box coordinates (RegionSet)
 - Apply these parcellations to collections of images or saliency maps (ImageSet)
+- Calculate per-region fixation status (fixated/not fixated), count, and duration-based dependent measures
 - Define features to assign a value to each region X image (e.g., mean saliency of each region)
-- Explicitly model central viewer bias using different approaches (e.g. euclidean distance, Gaussian)
+- Explicitly model central viewer bias using different approaches (e.g. Euclidean distance, Gaussian)
 - Output the resulting feature vectors for GLMM-based analysis [1,2]
-- Create initial R source code for GLMM analysis using lme4
+- Create initial R source code to facilitate GLMM analysis using lme4
 
 
 ## Installation
