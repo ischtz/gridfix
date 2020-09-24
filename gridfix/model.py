@@ -358,7 +358,7 @@ class ImageSet(object):
                     
                     else:
                         w = 'Warning: skipping {:s} due to image size ({:d}x{:d} instead of {:d}x{:d}).'
-                        print(w.format(iffile, imsize[0], imsize[1], self.size[0], self.size[1]))
+                        print(w.format(iffile, imshape[1], imshape[0], self.size[0], self.size[1]))
 
                 else:
                     raise ValueError('specified MATLAB variable not in file')
