@@ -628,15 +628,24 @@ class RegionSet(object):
                 'fixid': fixation ID (from input dataset) for first fixation in each region
             imageid (str): imageid (to select image-specific regions if not a global regionset)
             exclude_first (bool): if True, first fixated region will always be returned as NaN
-            exclude_last (bool): if True, last fixated region will always be returned as NaN
+            exclude_last (str): controls how to deal with regions receiving the last image fixation:
+                'never' or False: do not handle the last fixation specially
+                'always' or True: drop the entire region if it received the last fixation at any time
+                'pass': exclude viewing pass (one or multiple fixations) that received the last fixation
 
         Returns:
             1D ndarray (float) containing number of fixations per region (if count=True) 
             or the values 0.0 (region was not fixated) or 1.0 (region was fixated)
         """
+        if type(exclude_last) == bool:
+            if exclude_last:
+                exclude_last = 'always'
+            elif not exclude_last:
+                exclude_last = 'never'
+
         apply_regions = self._select_region(imageid)
         vis = np.zeros(apply_regions.shape[0], dtype=float)
-        
+
         # Drop out-of-bounds fixations
         fix = fixations.data[(fixations.data[fixations._xpx] >= 0) & 
                              (fixations.data[fixations._xpx] < self.size[0]) & 
@@ -650,7 +659,7 @@ class RegionSet(object):
                     print('Warning: you have requested to drop the first fixated region, but more than one ' +
                           'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
                           'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
-            if exclude_last:
+            if exclude_last != 'never':
                 last_fix = fixations.data[fixations.data[fixations._fixid] == max(fixations.data[fixations._fixid])]
                 if len(last_fix) > 1:
                     print('Warning: you have requested to drop the last fixated region, but more than one ' +
@@ -658,43 +667,86 @@ class RegionSet(object):
                           'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
 
             for (idx, roi) in enumerate(apply_regions):
-                fv = roi[fix[fixations._ypx], fix[fixations._xpx]]
-                if isinstance(fv, np.ndarray):
-
-                    if var == 'count':
-                        vis[idx] = sum(fv)
-
-                    elif var == 'fixated':
-                        vis[idx] = (sum(fv) >= 1.0)
-
-                    elif var == 'fixid':
-                        rfix = fix[fv] # All fixations on region
-                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
-                        if len(bystart) > 0:
-                            # Return first valid fixation ID
-                            vis[idx] = bystart.loc[bystart.index[0], fixations._fixid]
-                        else:
-                            vis[idx] = np.nan
-
                 if exclude_first:
                     try:
                         is_first = roi[first_fix[fixations._ypx], first_fix[fixations._xpx]]
                         if isinstance(is_first, np.ndarray) and np.any(is_first):
                             vis[idx] = np.nan
+                            continue
                         elif is_first:
                             vis[idx] = np.nan
+                            continue
                     except IndexError:
-                        pass # first fixation is out of bounds for image!
+                        pass # last fixation is out of bounds for image!
 
-                if exclude_last:
+                if exclude_last == 'always':
                     try:
                         is_last = roi[last_fix[fixations._ypx], last_fix[fixations._xpx]]
                         if isinstance(is_last, np.ndarray) and np.any(is_last):
                             vis[idx] = np.nan
+                            continue
                         elif is_last:
                             vis[idx] = np.nan
+                            continue
                     except IndexError:
                         pass # last fixation is out of bounds for image!
+
+                fv = roi[fix[fixations._ypx], fix[fixations._xpx]]
+                if np.any(fv):
+                    rfix = fix[fv] # All fixations on region
+                    bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+
+                    if len(bystart) > 0:
+                        # Find viewing passes (sets of in-region fixations without leaving region)
+                        idxvalid = np.ones(bystart.shape[0], dtype=np.bool) # fix indices to keep
+                        idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
+                        pass_onsets = idxdiff.index.values[(idxdiff > 1)].tolist()
+                        num_refix = len(pass_onsets)
+                        num_passes = num_refix + 1
+                        if len(pass_onsets) >= 1:
+                            end_first_pass = pass_onsets[0]
+                        else:
+                            end_first_pass = bystart.shape[0]
+
+                        # If requested, remove pass containing the last fixation
+                        if exclude_last == 'pass':
+                            passes = [0,] + pass_onsets + [len(bystart)+1,]
+                            for pidx in range(0, len(passes)-1):
+                                passfix = bystart.iloc[passes[pidx]:passes[pidx+1], :]
+                                if last_fix.index.values[0] in passfix.index:
+                                    # Exclude this and all following passes. Note that no later passes
+                                    # should exist unless there is an index error in the fixation data!
+                                    idxvalid[passes[pidx]:] = False
+                                    break
+
+                            if np.all(idxvalid == False):
+                                # If no valid fixations remain, drop the whole region (NA)
+                                vis[idx] = np.nan
+                                continue
+                            else:
+                                # Keep only valid fixations for fixation count measures
+                                bystart = bystart.loc[idxvalid, :]
+
+                        # Calculate fixation status measures
+                        if var == 'count':
+                            # Number of fixations in region
+                            vis[idx] = bystart.shape[0]
+
+                        elif var == 'fixated':
+                            # Binary coding of fixation status
+                            vis[idx] = (bystart.shape[0] >= 1.0)
+
+                        elif var == 'fixid':
+                            # Return first valid fixation ID in region
+                            if bystart.shape[0] >= 1.0:
+                                vis[idx] = bystart.loc[bystart.index[0], fixations._fixid]
+                            else:
+                                vis[idx] = np.nan
+
+                else:
+                    # No fixations in region -> fixID should be NA
+                    if var == 'fixid':
+                        vis[idx] = np.nan
 
         return vis
 
@@ -712,7 +764,10 @@ class RegionSet(object):
                 'tofirst': start time of the first fixation on each region
             imageid (str): imageid (to select image-specific regions if not a global regionset)
             exclude_first (bool): if True, first fixated region will always be returned as NaN
-            exclude_last (bool): if True, last fixated region will always be returned as NaN
+            exclude_last (str): controls how to deal with regions receiving the last image fixation:
+                'never' or False: do not handle the last fixation specially
+                'always' or True: drop the entire region if it received the last fixation at any time
+                'pass': exclude viewing pass (one or multiple fixations) that received the last fixation
 
         Returns:
             1D ndarray (float) containing fixation time based dependent variable for each region.
@@ -723,6 +778,12 @@ class RegionSet(object):
 
         if not fixations.has_times:
             raise AttributeError('Trying to extract a time-based DV from a dataset without fixation timing information! Specify fixstart=/fixend= when loading fixation data!')
+
+        if type(exclude_last) == bool:
+            if exclude_last:
+                exclude_last = 'always'
+            elif not exclude_last:
+                exclude_last = 'never'
 
         apply_regions = self._select_region(imageid)
         ft = np.ones(apply_regions.shape[0], dtype=float) * np.nan
@@ -741,7 +802,7 @@ class RegionSet(object):
                           'location ({:d}) matches the lowest fixation ID! Either your fixation ' .format(len(first_fix)) +
                           'IDs are not unique or the passed dataset contains data from multiple images or conditions.')
 
-            if exclude_last:
+            if exclude_last != 'never':
                 last_fix = fixations.data[fixations.data[fixations._fixid] == max(fixations.data[fixations._fixid])]
                 if len(last_fix) > 1:
                     print('Warning: you have requested to drop the last fixated region, but more than one ' +
@@ -761,7 +822,8 @@ class RegionSet(object):
                     except IndexError:
                         pass # first fixation is out of bounds for image!
 
-                if exclude_last:
+                if exclude_last == 'always':
+                    # If this region has the last fixation, drop it here (NaN) and move on
                     try:
                         is_last = roi[last_fix[fixations._ypx], last_fix[fixations._xpx]]
                         if isinstance(is_last, np.ndarray) and np.any(is_last):
@@ -771,53 +833,68 @@ class RegionSet(object):
                             ft[idx] = np.nan
                             continue
                     except IndexError:
-                        pass # first fixation is out of bounds for image!
+                        pass # last fixation is out of bounds for image!
 
                 fidx = roi[fix[fixations._ypx], fix[fixations._xpx]]
                 if np.any(fidx):
                     rfix = fix[fidx]    # all fixations in this region
+                    bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
 
-                    if var == 'total':
-                        # Total viewing time including refixations
-                        ft[idx] = sum(rfix[fixations._fixdur])
+                    if len(bystart) > 0:
+                        # Find viewing passes (sets of in-region fixations without leaving region)
+                        idxvalid = np.ones(bystart.shape[0], dtype=np.bool) # fix indices to keep
+                        idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
+                        pass_onsets = idxdiff.index.values[(idxdiff > 1)].tolist()
+                        num_refix = len(pass_onsets)
+                        num_passes = num_refix + 1
+                        if len(pass_onsets) >= 1:
+                            end_first_pass = pass_onsets[0]
+                        else:
+                            end_first_pass = bystart.shape[0]
 
-                    elif var == 'gaze':
-                        # Gaze duration: total viewing time of first pass only
-                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
-                        if len(bystart) > 0:
-                            try:
-                                idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
-                                fp_end = idxdiff.where(idxdiff > 1).first_valid_index()
-                            except IndexError:
-                                fp_end = len(bystart)
-                            ft[idx] = sum(bystart.loc[bystart.index[0:fp_end], fixations._fixdur])
+                        # If requested, remove pass containing the last fixation
+                        if exclude_last == 'pass':
+                            passes = [0,] + pass_onsets + [len(bystart)+1,]
+                            for pidx in range(0, len(passes)-1):
+                                passfix = bystart.iloc[passes[pidx]:passes[pidx+1], :]
+                                if last_fix.index.values[0] in passfix.index:
+                                    # Exclude this and all following passes. Note that no later passes
+                                    # should exist unless there is an index error in the fixation data!
+                                    idxvalid[passes[pidx]:] = False
+                                    break
 
-                    elif var == 'first':
-                        # First fixation duration
-                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
-                        if len(bystart) > 0:
+                            if np.all(idxvalid == False):
+                                # If no valid fixations remain, drop the whole region (NA)
+                                ft[idx] = np.nan
+                                continue
+                            else:
+                                # Keep only valid fixations for fixation count measures
+                                bystart = bystart.loc[idxvalid, :]
+
+                        # Calculate fixation timing measures
+                        if var == 'gaze':
+                            # Gaze duration: total viewing time of first pass only
+                            ft[idx] = sum(bystart.loc[bystart.index[0:end_first_pass], fixations._fixdur])
+
+                        elif var == 'first':
+                            # First fixation duration
                             ft[idx] = bystart.loc[bystart.index[0], fixations._fixdur]
 
-                    elif var == 'single':
-                        # Single fixation duration (=first fixation duration if not refixated in first pass)
-                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
-                        if len(bystart) > 0:
+                        elif var == 'single':
+                            # Single fixation duration (=first fixation duration if not refixated in first pass)
                             ft[idx] = bystart.loc[bystart.index[0], fixations._fixdur]
 
                             # If refixated on first pass, set to NaN instead
-                            try:
-                                idxdiff = bystart[fixations._fixid].diff().reset_index(drop=True)
-                                fp_end = idxdiff.where(idxdiff > 1).first_valid_index()
-                            except IndexError:
-                                fp_end = len(bystart)
-                            if fp_end is not None and fp_end > 1:
+                            if end_first_pass > 1:
                                 ft[idx] = np.nan
 
-                    elif var == 'tofirst':
-                        # Time until first fixation / first fixation onset
-                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
-                        if len(bystart) > 0:
+                        elif var == 'tofirst':
+                            # Time until first fixation / first fixation onset
                             ft[idx] = bystart.loc[bystart.index[0], fixations._fixstart]
+
+                        elif var == 'total':
+                            # Total viewing time of valid fixations
+                            ft[idx] = sum(bystart.loc[:, fixations._fixdur])
 
         return ft
 

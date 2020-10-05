@@ -1039,7 +1039,10 @@ class FixationModel(object):
             chunks (list): list of fixation data columns that define chunks (e.g., subjects or sessions)
             progress (bool): print current image and group variables to indicate model build progress
             exclude_first_fix (bool): if True, set first fixated region per image to NaN for GLMM
-            exclude_last_fix (bool): if True, set last fixated region per image to NaN for GLMM
+            exclude_last_fix (str): controls how to deal with regions receiving the last image fixation:
+                'never' or False: do not handle the last fixation specially
+                'always' or True: drop the entire region if it received the last fixation at any time
+                'pass': exclude viewing pass (one or multiple fixations) that received the last fixation
             normalize_features (bool): if True, normalize all feature values to 0..1 range
         """
         self.regionset = regionset
