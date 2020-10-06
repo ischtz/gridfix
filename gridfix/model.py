@@ -1312,14 +1312,7 @@ class FixationModel(object):
                 if dv in self.dv_type:
                     if self._dvs[dv]['f'] == 'c':
                         # Fixation count based measures
-                        if dv == 'fixated':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var='fixated', imageid=imageid, exclude_first=self.exclude_first_fix,
-                                                                                  exclude_last=self.exclude_last_fix)
-                        if dv == 'count':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var='count', imageid=imageid, exclude_first=self.exclude_first_fix,
-                                                                                  exclude_last=self.exclude_last_fix)
-                        if dv == 'fixid':
-                            tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var='fixid', imageid=imageid, exclude_first=self.exclude_first_fix,
+                        tmpdf[self._dvs[dv]['rvar']] = self.regionset.fixated(subset, var=dv, imageid=imageid, exclude_first=self.exclude_first_fix,
                                                                                   exclude_last=self.exclude_last_fix)
 
                     if self._dvs[dv]['f'] == 't' and subset.has_times:
