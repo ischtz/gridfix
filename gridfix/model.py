@@ -19,6 +19,13 @@ from distutils.version import LooseVersion
 from scipy.io import whosmat, loadmat
 from scipy.signal import convolve
 
+
+# Constants to facilitate specifying groups of Dependent Variables
+DV_FIXATED = ['fixated', 'count']
+DV_FIXDUR = ['first', 'single', 'gaze', 'tofirst', 'total']
+DV_ALL = ['fixated', 'count', 'fixid', 'first', 'single', 'gaze', 'tofirst', 'total', 'passes', 'refix']
+
+
 class ImageSet(object):
     """ Set of images of equal size for masking and Feature creation. 
 
@@ -1029,6 +1036,8 @@ class FixationModel(object):
                 'fixated': binary coding of fixated (1) and unfixated (0) regions
                 'count': absolute fixation count for each region
                 'fixid': fixation ID of the first valid fixation within each region (NaN if not fixated)
+                'passes': total number of viewing passes on this object (NaN if not fixated)
+                'refix': total number of refixations (viewing passes after first pass; NaN if not fixated)
                 'total': total fixation time for each region (NaN if not fixated)
                 'first': first fixation duration per region (NaN if not fixated)
                 'gaze': first-pass gaze duration per region (all initial fixations without refixations)
@@ -1061,6 +1070,8 @@ class FixationModel(object):
         self._dvs = {'fixated': {'f':'c', 'rvar': 'dvFix',    'fun': 'glmer', 'family': 'binomial'},
                      'count':   {'f':'c', 'rvar': 'dvCount',  'fun': 'glmer', 'family': 'poisson'},
                      'fixid':   {'f':'c', 'rvar': 'fixID',    'fun': None,    'family': None},
+                     'passes':  {'f':'c', 'rvar': 'dvPasses', 'fun': 'glmer', 'family': 'poisson'},
+                     'refix':   {'f':'c', 'rvar': 'dvRefix',  'fun': 'glmer', 'family': 'poisson'},
                      'first':   {'f':'t', 'rvar': 'dvFirst',  'fun': 'lmer',  'family': None},
                      'gaze':    {'f':'t', 'rvar': 'dvGaze',   'fun': 'lmer',  'family': None},
                      'tofirst': {'f':'t', 'rvar': 'dvToFirst','fun': 'lmer',  'family': None},

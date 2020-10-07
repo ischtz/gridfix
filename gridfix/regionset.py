@@ -726,6 +726,8 @@ class RegionSet(object):
                             else:
                                 # Keep only valid fixations for fixation count measures
                                 bystart = bystart.loc[idxvalid, :]
+                                num_refix = np.sum(idxvalid[pass_onsets] == True)
+                                num_passes = num_refix + 1
 
                         # Calculate fixation status measures
                         if var == 'count':
@@ -742,6 +744,14 @@ class RegionSet(object):
                                 vis[idx] = bystart.loc[bystart.index[0], fixations._fixid]
                             else:
                                 vis[idx] = np.nan
+
+                        elif var == 'passes':
+                            # Total number of fixation passes
+                            vis[idx] = num_passes
+
+                        elif var == 'refix':
+                            # Total number of fixation passes
+                            vis[idx] = num_refix
 
                 else:
                     # No fixations in region -> fixID should be NA
@@ -870,6 +880,8 @@ class RegionSet(object):
                             else:
                                 # Keep only valid fixations for fixation count measures
                                 bystart = bystart.loc[idxvalid, :]
+                                num_refix = np.sum(idxvalid[pass_onsets] == True)
+                                num_passes = num_refix + 1
 
                         # Calculate fixation timing measures
                         if var == 'gaze':
