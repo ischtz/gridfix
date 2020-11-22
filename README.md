@@ -1,14 +1,14 @@
 # GridFix
 
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.998554.svg)](https://doi.org/10.5281/zenodo.998554)
+[![PyPI version](https://badge.fury.io/py/gridfix.svg)](https://badge.fury.io/py/gridfix) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.998553.svg)](https://doi.org/10.5281/zenodo.998553)
 
 
 GridFix is a Python 3 toolbox to facilitate preprocessing of scene fixation data for region-based analysis using Generalized Linear Mixed Models (GLMM).
 
 [Our recently published manuscript](https://www.frontiersin.org/articles/10.3389/fnhum.2017.00491) [1] describes how this approach can be used to evaluate models of visual saliency above and beyond content-independent biases. Please also see [3] for a previous description of the approach and [our ECVP 2016 poster](http://doi.org/10.5281/zenodo.571067) [2] for an overview about the structure and workflow of the GridFix toolbox.
 
-[![Example Image](https://ischtz.github.io/gridfix/_images/example_grid.png)]
+![Example Image](https://ischtz.github.io/gridfix/_images/example_grid.png)
 
 
 ## Features
@@ -30,9 +30,16 @@ GridFix requires Python 3. The following packages need to be installed:
 - pandas
 - PIL or Pillow (image library)
 
-If you need to first install a Python environment, we recommend the Anaconda distribution which includes all of the listed prerequisites by default, is available for all major platforms (Windows, Mac, Linux) and can be downloaded at https://www.continuum.io/downloads. 
+If you need to first install a Python environment, we recommend the Anaconda distribution which includes all of the listed prerequisites by default, is available for all major platforms (Windows, Mac, Linux) and can be downloaded at https://www.anaconda.com/products/individual#Downloads. 
 
-To install GridFix, clone this repository using git or download a ZIP file using the "Clone or download" button, then run the following:
+To install GridFix from the Python Package Index (PyPI), simply run:
+
+```
+pip install gridfix
+```
+
+
+Alternatively, you can clone this repository using git or download a ZIP file using the "Clone or download" button, then run the following:
 
 ```
 python3 setup.py install
