@@ -645,7 +645,7 @@ class Fixations(object):
 
 
     def plot(self, imageid=None, select={}, on_image=True, oob=False,
-             plotformat='wo', plotsize=5.0, plotcolor=[1, 1, 1],
+             plotformat='o', plotsize=5.0, plotcolor=[1, 1, 1],
              durations=False, image_only=False, ax=None):
         """ Plot fixations for selected imageid, either alone or on image
 
@@ -654,9 +654,9 @@ class Fixations(object):
             select (dict): dict of additional filter variables (see select_fix())
             image (bool): if True, superimpose fixations onto image (if ImageSet present)
             oob (bool): if True, include out-of-bounds fixations when plotting
-            plotformat (str): format string for plt.pyplot.plot(), default: white circles
+            plotformat (str): format string for plt.pyplot.plot(), default: circles
             plotsize (float): fixation marker size
-            plotcolor (color): matplotlib color spec for markers
+            plotcolor (color): fixation marker color, default: white
             durations (bool): if True, plot duration of each fixation next to marker
             image_only (boolean): if True, return only image content without labels
             ax (Axes): axes object to draw to, to include result in other figure
