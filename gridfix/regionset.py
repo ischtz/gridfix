@@ -694,7 +694,12 @@ class RegionSet(object):
                 fv = roi[fix[fixations._ypx], fix[fixations._xpx]]
                 if np.any(fv):
                     rfix = fix[fv] # All fixations on region
-                    bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                    if fixations.has_times:
+                        # If fixation data has timing information, ensure to drop fixations
+                        # that began before the current fixation report
+                        bystart = rfix[rfix[fixations._fixstart] >= 0].sort_values(fixations._fixid)
+                    else:
+                        bystart = rfix.sort_values(fixations._fixid)
 
                     if len(bystart) > 0:
                         # Find viewing passes (sets of in-region fixations without leaving region)
