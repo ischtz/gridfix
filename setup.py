@@ -5,7 +5,7 @@ with open('README.md', 'r') as rf:
 
 setuptools.setup(
     name='gridfix',
-    version='0.3.1',
+    version='0.3.2',
     description='Parcellation-based gaze fixation preprocessing for GLMM analysis',
     long_description=readme,
     long_description_content_type='text/markdown',
